@@ -1,0 +1,34 @@
+#!/bin/sh
+
+while [ "$1" != "" ]; do
+    PARAM=`echo $1 | sed 's/=.*//'`
+    VALUE=`echo $1 | sed 's/[^=]*//; s/=//'`
+    case "$PARAM" in
+        --prefix)
+            PREFIX="$VALUE"
+            ;;
+        CC)
+            CC="$VALUE"
+            ;;
+        CFLAGS)
+            CFLAGS="$VALUE"
+            ;;
+    esac
+    shift
+done
+
+if [ -z "$CC" ]; then
+    CC=gcc
+fi
+
+if [ -z "$CFLAGS" ]; then
+    CFLAGS="-c -fPIC -Wall"
+fi
+
+echo -n "" > Makefile
+echo "CC=$CC" >> Makefile
+echo "CFLAGS=$CFLAGS" >> Makefile
+echo "PREFIX=$PREFIX" >> Makefile
+echo "" >> Makefile
+
+cat Makefile.in >> Makefile

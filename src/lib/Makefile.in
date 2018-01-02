@@ -1,0 +1,23 @@
+SOURCES=calc_mean.c
+HEADERS=$(SOURCES:.c=.h)
+OBJECTS=$(SOURCES:.c=.o)
+LIBNAME=libmean.so
+
+all: $(LIBNAME)
+
+%.o: %.c
+	$(CC) $(CFLAGS) $< -o $@
+
+$(LIBNAME): $(OBJECTS)
+	$(CC) -shared -fPIC -o $(LIBNAME) $(OBJECTS)
+
+install: $(LIBNAME)
+	mkdir -p $(PREFIX)/lib
+	mkdir -p $(PREFIX)/include
+	cp $(LIBNAME) $(PREFIX)/lib
+	cp $(HEADERS) $(PREFIX)/include
+
+clean:
+	rm *.o *.so
+
+.PHONY: clean
