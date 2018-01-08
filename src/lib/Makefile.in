@@ -1,7 +1,7 @@
-SOURCES=calc_mean.c
+SOURCES=prym_green.c
 HEADERS=$(SOURCES:.c=.h)
 OBJECTS=$(SOURCES:.c=.o)
-LIBNAME=libmean.so
+LIBNAME=libprymgreen.so
 
 all: $(LIBNAME)
 
