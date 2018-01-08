@@ -9,7 +9,8 @@ all: $(LIBNAME)
 	$(CC) $(CFLAGS) $< -o $@
 
 $(LIBNAME): $(OBJECTS)
-	$(CC) -shared -fPIC -o $(LIBNAME) $(OBJECTS)
+	$(CC) -shared -fPIC -Wl,-rpath,$(FLINT_DIR) -lflint -o $(LIBNAME) \
+		$(OBJECTS)
 
 install: $(LIBNAME)
 	mkdir -p $(PREFIX)/lib
