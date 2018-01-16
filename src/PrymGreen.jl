@@ -32,7 +32,7 @@ function load_example(filename::String)
         eval(parse("$s = X[$i]"))
     end
     I = Ideal(R, [ eval(parse(s)) for s in basis ])
-    I
+    R, I, key
 end
 
 function check_prym_green_conjecture()
