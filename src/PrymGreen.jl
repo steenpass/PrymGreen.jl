@@ -42,10 +42,17 @@ end
 function submatrix(r::Singular.sresolution, g::Int)
     index = div(g, 2)-2
     B = betti(r)
+    size = Int64(B[3, index])
+    if size != B[2, index+1]
+        error("matrix not square")
+    end
     limit = B[2, index]
     ptr = r.ptr
     values = icxx"""(int **)malloc(sizeof(int *));"""
-    n_values = icxx"""check_matrix($values, $ptr, $g, $limit);"""
+    n_values = icxx"""check_matrix($values, $ptr, $g, $size, $limit);"""
+    if n_values <= 0
+        error("number values in prym green matrix must be positive")
+    end
     unsafe_wrap(Array, unsafe_load(values), (n_values, ), true);
 end
 

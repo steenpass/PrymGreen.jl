@@ -28,7 +28,7 @@ static int binom(int n, int k, int **B)
 #define h_shift(h, v, f, B) binom(h+v+f-3, h-1, B)
 #define v_shift(h, v, f, B) binom(h+v+f-3, v-1, B)
 
-static long prym_green_size(int *hblocks, int n_hblocks, int g, int **B)
+static int64_t prym_green_size(int *hblocks, int n_hblocks, int g, int **B)
 {
     long size = 0;
     // sum up h_shift's of all blocks in the first row
@@ -71,7 +71,7 @@ static long count_values(int *hblocks, int n_hblocks, int g, int **B)
     return n_values;
 }
 
-long check_matrix(int **values, resolvente res, int g, int limit)
+long check_matrix(int **values, resolvente res, int g, int64_t size, int limit)
 {
     int index = g/2-2;
     int **B = init_binomial_coeffs(g);
@@ -84,8 +84,9 @@ long check_matrix(int **values, resolvente res, int g, int limit)
     }
     hblocks[n_hblocks-1] = g-7;
 
-    long size = prym_green_size(hblocks, n_hblocks, g, B);
-printf("size: %ld\n", size);
+    if (size != prym_green_size(hblocks, n_hblocks, g, B)) {
+        return 0;   // error
+    }
     poly *columns = (poly *)malloc(size*sizeof(poly));
     for (long i = 0; i < size; i++) {
         columns[i] = res[index]->m[i];
