@@ -3,7 +3,7 @@ module PrymGreen
 using LightXML
 using Singular
 
-export load_example, check_prym_green_conjecture
+export load_example, prym_green_matrix, check_prym_green_conjecture
 
 function __init__()
     pkgdir = dirname(dirname(@__FILE__))
@@ -33,6 +33,33 @@ function load_example(filename::String)
     end
     I = Ideal(R, [ eval(parse(s)) for s in basis ])
     R, I, key
+end
+
+function prym_green_matrix(r::Singular.sresolution, g::Int)
+    index = div(g, 2)-2
+    B = betti(r)
+    size = B[3, index]
+    if size != B[2, index+1]
+        error("matrix not square")
+    end
+    limit = B[2, index]
+    m = r[index]
+    PR = Singular.base_ring(m)
+    CR = Singular.base_ring(PR)
+    A = spzeros(size, size)
+    for i = 1:size
+        ptr = m[i].ptr
+        while ptr != C_NULL
+            j = Singular.libSingular.p_GetComp(ptr, PR.ptr)-limit
+            if j > 0
+                n = Singular.libSingular.pGetCoeff(ptr)
+                a = CR(Singular.libSingular.n_Copy(n, CR.ptr))
+                A[i, j] = Int(a)
+            end
+            ptr = Singular.libSingular.pNext(ptr)
+        end
+    end
+    A
 end
 
 function check_prym_green_conjecture()
