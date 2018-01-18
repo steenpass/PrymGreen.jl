@@ -1,9 +1,16 @@
 #include <flint/ulong_extras.h>
 #include <flint/longlong.h>
 
+#include "submatrix.h"
+
 #if FLINT_BITS != 64
 #error "not implemented for FLINT_BITS != 64"
 #endif
+
+int test_increase(int n)
+{
+    return increase(n);
+}
 
 ulong mult_preinv_test(ulong a, ulong b, ulong n, long N)
 {

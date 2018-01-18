@@ -1,6 +1,7 @@
 #!/bin/sh
 
 FLINT_DIR=/usr/local
+SINGULAR_DIR=/usr/local
 
 absolute_path() {
     dirlist="$1"
@@ -25,11 +26,20 @@ while [ "$1" != "" ]; do
         --with-flint)
             FLINT_DIR=$(absolute_path "$VALUE")
             ;;
+        --with-singular)
+            SINGULAR_DIR=$(absolute_path "$VALUE")
+            ;;
         CC)
             CC="$VALUE"
             ;;
         CFLAGS)
             CFLAGS="$VALUE"
+            ;;
+        CXX)
+            CXX="$VALUE"
+            ;;
+        CXXFLAGS)
+            CXXFLAGS="$VALUE"
             ;;
     esac
     shift
@@ -40,14 +50,25 @@ if [ -z "$CC" ]; then
 fi
 
 if [ -z "$CFLAGS" ]; then
-    CFLAGS="-c -fPIC -Wall"
+    CFLAGS="-fPIC -Wall"
+fi
+
+if [ -z "$CXX" ]; then
+    CXX=g++
+fi
+
+if [ -z "$CXXFLAGS" ]; then
+    CXXFLAGS="-fPIC -Wall"
 fi
 
 echo -n "" > Makefile
 echo "CC=$CC" >> Makefile
 echo "CFLAGS=$CFLAGS" >> Makefile
+echo "CXX=$CXX" >> Makefile
+echo "CXXFLAGS=$CXXFLAGS" >> Makefile
 echo "PREFIX=$PREFIX" >> Makefile
 echo "FLINT_DIR=$FLINT_DIR" >> Makefile
+echo "SINGULAR_DIR=$SINGULAR_DIR" >> Makefile
 echo "" >> Makefile
 
 cat Makefile.in >> Makefile

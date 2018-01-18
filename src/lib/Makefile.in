@@ -1,16 +1,25 @@
-SOURCES=prym_green.c
-HEADERS=$(SOURCES:.c=.h)
-OBJECTS=$(SOURCES:.c=.o)
+SOURCES_C=prym_green.c
+SOURCES_CXX=submatrix.cc
+HEADERS=$(SOURCES_C:.c=.h) $(SOURCES_CXX:.cc=.h)
+OBJECTS=$(SOURCES_C:.c=.o) $(SOURCES_CXX:.cc=.o)
 LIBNAME=libprymgreen.so
+
+INCLUDE_FLINT=-I$(FLINT_DIR)/include
+INCLUDE_SINGULAR=-I$(SINGULAR_DIR)/include -I$(SINGULAR_DIR)/include/singular
+
+LINKING_OPTIONS=-Wl,-rpath,$(FLINT_DIR)/lib,-rpath,$(SINGULAR_DIR)/lib
+LINKING_OPTIONS+=-L$(FLINT_DIR)/lib -L$(SINGULAR_DIR)/lib -lflint
 
 all: $(LIBNAME)
 
-%.o: %.c
-	$(CC) $(CFLAGS) $< -o $@
+prym_green.o: prym_green.c
+	$(CC) -c $(CFLAGS) $(INCLUDE_FLINT) $< -o $@
+
+submatrix.o: submatrix.cc
+	$(CXX) -c $(CXXFLAGS) $(INCLUDE_SINGULAR) $< -o $@
 
 $(LIBNAME): $(OBJECTS)
-	$(CC) -shared -fPIC -Wl,-rpath,$(FLINT_DIR) -lflint -o $(LIBNAME) \
-		$(OBJECTS)
+	$(CC) -shared -fPIC $(LINKING_OPTIONS) -o $(LIBNAME) $(OBJECTS)
 
 install: $(LIBNAME)
 	mkdir -p $(PREFIX)/lib
