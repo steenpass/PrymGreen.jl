@@ -71,10 +71,9 @@ static long count_values(int *hblocks, int n_hblocks, int g, int **B)
     return n_values;
 }
 
-int check_matrix(resolvente res, int g)
+long check_matrix(int **values, resolvente res, int g, int limit)
 {
     int index = g/2-2;
-    ideal M = res[index];
     int **B = init_binomial_coeffs(g);
 
     /* define horizontal blocks */
@@ -87,8 +86,16 @@ int check_matrix(resolvente res, int g)
 
     long size = prym_green_size(hblocks, n_hblocks, g, B);
 printf("size: %ld\n", size);
+    poly *columns = (poly *)malloc(size*sizeof(poly));
+    for (long i = 0; i < size; i++) {
+        columns[i] = res[index]->m[i];
+    }
     long n_values = count_values(hblocks, n_hblocks, g, B);
 printf("n_values: %ld\n", n_values);
+    *values = (int *)malloc(n_values*sizeof(int));
+    for (long i = 0; i < n_values; i++) {
+        (*values)[i] = -1;
+    }
 
-    return g;
+    return n_values;
 }

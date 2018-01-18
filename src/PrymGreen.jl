@@ -40,8 +40,13 @@ function load_example(filename::String)
 end
 
 function submatrix(r::Singular.sresolution, g::Int)
+    index = div(g, 2)-2
+    B = betti(r)
+    limit = B[2, index]
     ptr = r.ptr
-    icxx"""check_matrix($ptr, $g);"""
+    values = icxx"""(int **)malloc(sizeof(int *));"""
+    n_values = icxx"""check_matrix($values, $ptr, $g, $limit);"""
+    unsafe_wrap(Array, unsafe_load(values), (n_values, ), true);
 end
 
 function prym_green_matrix(r::Singular.sresolution, g::Int)

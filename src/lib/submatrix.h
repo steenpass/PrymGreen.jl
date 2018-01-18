@@ -9,6 +9,6 @@
 
 #pragma GCC diagnostic pop
 
-int check_matrix(resolvente res, int g);
+long check_matrix(int **values, resolvente res, int g, int limit);
 
 #endif   // SUBMATRIX_H
