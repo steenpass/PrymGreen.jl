@@ -1,14 +1,18 @@
 module PrymGreen
 
 using LightXML
+using Cxx
 using Singular
 
-export load_example, prym_green_matrix, check_prym_green_conjecture
+export load_example, submatrix, prym_green_matrix, check_prym_green_conjecture
 
 function __init__()
     pkgdir = dirname(dirname(@__FILE__))
     ldir = joinpath(pkgdir, "local", "lib")
     push!(Libdl.DL_LOAD_PATH, ldir)
+    Libdl.dlopen(joinpath("libprymgreen"), Libdl.RTLD_GLOBAL)
+    addHeaderDir(joinpath(pkgdir, "local", "include"), kind = C_User)
+    cxxinclude(joinpath("submatrix.h"), isAngled = false)
 end
 
 function load_example(filename::String)
@@ -33,6 +37,11 @@ function load_example(filename::String)
     end
     I = Ideal(R, [ eval(parse(s)) for s in basis ])
     R, I, key
+end
+
+function submatrix(r::Singular.sresolution, g::Int)
+    ptr = r.ptr
+    icxx"""check_matrix($ptr, $g);"""
 end
 
 function prym_green_matrix(r::Singular.sresolution, g::Int)
