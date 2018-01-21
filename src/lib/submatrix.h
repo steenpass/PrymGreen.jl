@@ -10,6 +10,6 @@
 #pragma GCC diagnostic pop
 
 long check_matrix(int **values, resolvente res, int g, int64_t size,
-        int limit);
+        int limit, int c, ring R);
 
 #endif   // SUBMATRIX_H

@@ -71,9 +71,120 @@ static long count_values(int *hblocks, int n_hblocks, int g, int **B)
     return n_values;
 }
 
-long check_matrix(int **values, resolvente res, int g, int64_t size, int limit)
+static bool check_entry(poly *column, int *value, int sign, int c)
 {
-    int index = g/2-2;
+    int m = (int)(long)pGetCoeff(*column);
+    pIter(*column);
+    if (sign == -1 && m != 0) m = c-m;
+// printf("checking entry %d ?= %d\n", m, *value);
+    if (*value == -1) {
+        *value = m;
+        return true;
+    } else {
+        return (*value == m);
+    }
+}
+
+static bool f_check(int h, int v, int sign, poly *columns, int *values,
+        int c, int **B)
+{
+// printf("f_check with (h, v, sign) = (%d, %d, %d)\n", h, v, sign);
+    int size = h_shift(h, v, 1, B);   // == v_shift(h, v, 1, B)
+    for (int i = 0; i < size; i++) {
+        if (!check_entry(&columns[i], values, sign, c)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool h_check(int v, int f, int sign, poly *columns, int *values,
+        int c, int **B)
+{
+// printf("h_check with (v, f, sign) = (%d, %d, %d)\n", v, f, sign);
+    int size = v_shift(1, v, f, B);
+    for (int i = 0; i < size; i++) {
+        if (!check_entry(columns, &values[size-i-1], sign, c)) {
+            return false;
+        }
+        sign *= -1;
+    }
+    return true;
+}
+
+static bool v_check(int h, int f, int sign, poly *columns, int *values,
+        int c, int **B)
+{
+// printf("v_check with (h, f, sign) = (%d, %d, %d)\n", h, f, sign);
+    int size = h_shift(h, 1, f, B);
+    for (int i = 0; i < size; i++) {
+        if (!check_entry(&columns[i], &values[i], sign, c)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool check_koszul_block(int h, int v, int f, int sign, poly *columns,
+    int *values, int c, int **B)
+{
+// printf("checking block with (h, v, f, sign) = (%d, %d, %d, %d)\n",
+//          h, v, f, sign);
+    if (h < 1 || v < 1 || f < 1) {
+        return true;
+    }
+    if (f == 1) {
+        return f_check(h, v, sign, columns, values, c, B);
+    } else if (h == 1 && f == 2) {
+        return h_check(v, f, sign, columns, values, c, B);
+    } else if (v == 1) {
+        return v_check(h, f, sign, columns, values, c, B);
+    }   // else:
+    if (!check_koszul_block(h-1, v, f, sign, columns, values, c, B)) {
+        return 0;
+    }
+    columns += h_shift(h-1, v, f, B);
+    if (!check_koszul_block(h, v, f-1, sign, columns,
+                &values[binom(h+v+f-4, f-1, B)], c, B)) {
+        return false;
+    }
+    if (!check_koszul_block(h, v-1, f, ((f%2)*2-1)*sign, columns, values, c,
+                B)) {
+        return false;
+    }
+    return true;
+}
+
+
+static bool check_koszul_row(int hblocks[], int n_hblocks, int g, int f,
+        poly *columns, int **values_iter, int c, int **B)
+{
+// printf("checking row with g = %d, f = %d\n", g, f);
+    int v = g/2-f-1;
+    for (int i = 0; i < n_hblocks; i++) {
+        for (int j = 0; j < hblocks[i]; j++) {
+            if (!check_koszul_block(i+1, v, f, 1, columns, *values_iter, c,
+                        B)) {
+                return false;
+            }
+            *values_iter += count_values_block(i+1, v, f, B);
+            if (i != n_hblocks-1) {
+                if (!check_koszul_block(i+1, v-1, f+1, 1, columns,
+                            *values_iter, c, B)) {
+                    return false;
+                }
+                *values_iter += count_values_block(i+1, v-1, f+1, B);
+            }
+            columns += h_shift(i+1, v, f, B);
+        }
+    }
+    return true;
+}
+
+static long check_matrix_currRing(int **values_ptr, resolvente res, int g,
+        int64_t size, int limit, int c)
+{
+    int index = g/2-3;
     int **B = init_binomial_coeffs(g);
 
     /* define horizontal blocks */
@@ -85,18 +196,55 @@ long check_matrix(int **values, resolvente res, int g, int64_t size, int limit)
     hblocks[n_hblocks-1] = g-7;
 
     if (size != prym_green_size(hblocks, n_hblocks, g, B)) {
+        fprintf(stderr, "matrix not square, returning 0\n");
         return 0;   // error
     }
     poly *columns = (poly *)malloc(size*sizeof(poly));
     for (long i = 0; i < size; i++) {
         columns[i] = res[index]->m[i];
+        while (columns[i] != NULL && pGetComp(columns[i]) <= limit) {
+            pIter(columns[i]);
+        }
     }
     long n_values = count_values(hblocks, n_hblocks, g, B);
-printf("n_values: %ld\n", n_values);
-    *values = (int *)malloc(n_values*sizeof(int));
+    *values_ptr = (int *)malloc(n_values*sizeof(int));
     for (long i = 0; i < n_values; i++) {
-        (*values)[i] = -1;
+        (*values_ptr)[i] = -1;
     }
 
+    /* check entries */
+    int **values_iter = (int **)malloc(sizeof(int *));
+    *values_iter = *values_ptr;
+    char errmsg[]
+        = "matrix does not admit prym green structure, returning 0\n";
+    for (int k = 0; k < 3; k++) {
+        if (!check_koszul_row(hblocks, n_hblocks, g, 2, columns, values_iter,
+                    c, B)) {
+            fprintf(stderr, errmsg);
+            return 0;
+        }
+    }
+    for (int k = 0; k < g; k++) {
+        if (!check_koszul_row(hblocks, n_hblocks, g, 2, columns, values_iter,
+                    c, B)) {
+            fprintf(stderr, errmsg);
+            return 0;
+        }
+        if (!check_koszul_row(hblocks, n_hblocks, g, 3, columns, values_iter,
+                    c, B)) {
+            fprintf(stderr, errmsg);
+            return 0;
+        }
+    }
+    return n_values;
+}
+
+long check_matrix(int **values_ptr, resolvente res, int g, int64_t size,
+        int limit, int c, ring R)
+{
+    const ring R_orig = currRing;
+    rChangeCurrRing(R);
+    long n_values = check_matrix_currRing(values_ptr, res, g, size, limit, c);
+    rChangeCurrRing(R_orig);
     return n_values;
 }

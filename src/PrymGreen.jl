@@ -39,7 +39,7 @@ function load_example(filename::String)
     R, I, key
 end
 
-function submatrix(r::Singular.sresolution, g::Int)
+function submatrix(r::Singular.sresolution, g::Int, char::Int)
     index = div(g, 2)-2
     B = betti(r)
     size = Int64(B[3, index])
@@ -47,13 +47,22 @@ function submatrix(r::Singular.sresolution, g::Int)
         error("matrix not square")
     end
     limit = B[2, index]
-    ptr = r.ptr
-    values = icxx"""(int **)malloc(sizeof(int *));"""
-    n_values = icxx"""check_matrix($values, $ptr, $g, $size, $limit);"""
-    if n_values <= 0
-        error("number values in prym green matrix must be positive")
+    r_ptr = r.ptr
+    R = Singular.base_ring(r)
+    ring = R.ptr
+    ordstr = icxx"""rOrdStr($ring);"""
+    if !ismatch(r"^dp\([0-9].*\),c", unsafe_string(ordstr))
+        error("monomial ordering must be (dp, c)")
     end
-    unsafe_wrap(Array, unsafe_load(values), (n_values, ), true);
+    icxx"""omFree($ordstr);"""
+    values_ptr = icxx"""(int **)malloc(sizeof(int *));"""
+    n_values = icxx"""
+            check_matrix($values_ptr, $r_ptr, $g, $size, $limit, $char, $ring);
+            """
+    if n_values <= 0
+        error("number of values in prym green matrix must be positive")
+    end
+    unsafe_wrap(Array, unsafe_load(values_ptr), (n_values, ), true);
 end
 
 function prym_green_matrix(r::Singular.sresolution, g::Int)
