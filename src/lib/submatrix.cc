@@ -17,6 +17,12 @@ static int** init_binomial_coeffs(int g)
     return B;
 }
 
+static void clear_binomial_coeffs(int **B)
+{
+    free(B[0]);
+    free(B);
+}
+
 static int binom(int n, int k, int **B)
 {
     if (k < 0 || k > n) {
@@ -190,10 +196,9 @@ static bool check_koszul_row(int hblocks[], int n_hblocks, int g, int f,
 }
 
 static long check_matrix_currRing(int **values_ptr, resolvente res, int g,
-        int64_t size, int limit, int c)
+        int64_t size, int limit, int c, int **B)
 {
     int index = g/2-3;
-    int **B = init_binomial_coeffs(g);
 
     /* define horizontal blocks */
     int n_hblocks = g/2-1;
@@ -215,6 +220,7 @@ static long check_matrix_currRing(int **values_ptr, resolvente res, int g,
         }
     }
     long n_values = count_values(hblocks, n_hblocks, g, B);
+    // this memory block will be handed over to the calling function:
     *values_ptr = (int *)malloc(n_values*sizeof(int));
     for (long i = 0; i < n_values; i++) {
         (*values_ptr)[i] = -1;
@@ -251,6 +257,8 @@ static long check_matrix_currRing(int **values_ptr, resolvente res, int g,
             return 0;
         }
     }
+    free(values_iter);
+    free(columns);
     return n_values;
 }
 
@@ -259,7 +267,10 @@ long check_matrix(int **values_ptr, resolvente res, int g, int64_t size,
 {
     const ring R_orig = currRing;
     rChangeCurrRing(R);
-    long n_values = check_matrix_currRing(values_ptr, res, g, size, limit, c);
+    int **B = init_binomial_coeffs(g);
+    long n_values = check_matrix_currRing(values_ptr, res, g, size, limit, c,
+            B);
+    clear_binomial_coeffs(B);
     rChangeCurrRing(R_orig);
     return n_values;
 }

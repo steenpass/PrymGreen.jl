@@ -62,7 +62,9 @@ function submatrix(r::Singular.sresolution, g::Int, char::Int)
     if n_values <= 0
         error("number of values in prym green matrix must be positive")
     end
-    unsafe_wrap(Array, unsafe_load(values_ptr), (n_values, ), true);
+    A = unsafe_wrap(Array, unsafe_load(values_ptr), (n_values, ), true)
+    icxx"""free($values_ptr);"""
+    A
 end
 
 function prym_green_matrix(r::Singular.sresolution, g::Int)
