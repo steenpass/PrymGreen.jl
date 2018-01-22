@@ -6,13 +6,18 @@ using Singular
 
 export load_example, submatrix, prym_green_matrix, check_prym_green_conjecture
 
+const pkgdir = dirname(dirname(@__FILE__))
+addHeaderDir(joinpath(pkgdir, "local", "include"), kind = C_User)
+cxxinclude(joinpath("submatrix.h"), isAngled = false)
+
+global const Msize_t = typeof(icxx"""(msize_t)0;""")
+global const Nvals_t = typeof(icxx"""(nvals_t)0;""")
+global const Entry_t = typeof(icxx"""(entry_t)0;""")
+
 function __init__()
-    pkgdir = dirname(dirname(@__FILE__))
     ldir = joinpath(pkgdir, "local", "lib")
     push!(Libdl.DL_LOAD_PATH, ldir)
     Libdl.dlopen(joinpath("libprymgreen"), Libdl.RTLD_GLOBAL)
-    addHeaderDir(joinpath(pkgdir, "local", "include"), kind = C_User)
-    cxxinclude(joinpath("submatrix.h"), isAngled = false)
 end
 
 function load_example(filename::String)
@@ -39,14 +44,14 @@ function load_example(filename::String)
     R, I, key
 end
 
-function submatrix(r::Singular.sresolution, g::Int, char::Int)
+function submatrix(r::Singular.sresolution, g::Int, char::Entry_t)
     index = div(g, 2)-2
     B = betti(r)
-    size = Int64(B[3, index])
-    if size != B[2, index+1]
+    size = Msize_t(B[3, index])
+    if size != Msize_t(B[2, index+1])
         error("matrix not square")
     end
-    limit = B[2, index]
+    limit = Msize_t(B[2, index])
     r_ptr = r.ptr
     R = Singular.base_ring(r)
     ring = R.ptr
@@ -55,11 +60,11 @@ function submatrix(r::Singular.sresolution, g::Int, char::Int)
         error("monomial ordering must be (dp, c)")
     end
     icxx"""omFree($ordstr);"""
-    values_ptr = icxx"""(int **)malloc(sizeof(int *));"""
+    values_ptr = icxx"""(entry_t **)malloc(sizeof(entry_t *));"""
     n_values = icxx"""
             check_matrix($values_ptr, $r_ptr, $g, $size, $limit, $char, $ring);
             """
-    if n_values <= 0
+    if n_values == 0
         error("number of values in prym green matrix must be positive")
     end
     A = unsafe_wrap(Array, unsafe_load(values_ptr), (n_values, ), true)
