@@ -51,6 +51,7 @@ function submatrix(r::Singular.sresolution, g::Int, char::Entry_t)
     if size != Msize_t(B[2, index+1])
         error("matrix not square")
     end
+println("size = ", size)
     limit = Msize_t(B[2, index])
     r_ptr = r.ptr
     R = Singular.base_ring(r)
@@ -64,6 +65,7 @@ function submatrix(r::Singular.sresolution, g::Int, char::Entry_t)
     n_values = icxx"""
             check_matrix($values_ptr, $r_ptr, $g, $size, $limit, $char, $ring);
             """
+println("n_values = ", n_values)
     if n_values == 0
         error("number of values in prym green matrix must be positive")
     end
