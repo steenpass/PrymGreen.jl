@@ -78,24 +78,25 @@ static nvals_t count_values(int *hblocks, int n_hblocks, int g, int **B)
     return n_values;
 }
 
-static inline entry_t neg_entry(entry_t m, entry_t c)
-{
-    if (m != (entry_t)0) {
-        return c-m;
-    }
-    return m;
-}
-
 static bool check_entry(poly *column, entry_t *value, int sign, msize_t row,
         entry_t c)
 {
-    if (*column == NULL || (msize_t)pGetComp(*column) != row) {
-        return false;
-    }
-    entry_t m = (entry_t)(long)pGetCoeff(*column);
-    pIter(*column);
-    if (sign == -1) {
-        m = neg_entry(m, c);
+    entry_t m;
+    if (*column == NULL) {
+        m = (entry_t)0;
+    } else {
+        msize_t comp = (msize_t)pGetComp(*column);
+        if (comp < row) {
+            return false;
+        } else if (comp > row) {
+            m = (entry_t)0;
+        } else {   // comp == row
+            m = (entry_t)(long)pGetCoeff(*column);
+            pIter(*column);
+            if (sign == -1) {   // assume m != 0
+                m = c-m;
+            }
+        }
     }
 // printf("checking entry %d ?= %d\n", m, *value);
     if (*value == null_entry) {
