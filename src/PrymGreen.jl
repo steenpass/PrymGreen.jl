@@ -35,7 +35,7 @@ function load_example(filename::String)
     basis = split(basis, ['\n', ' ', '[', ',', ']'], keep=false)
     basis = Array{String,1}(basis)
     free(example_xml)
-    R, X = PolynomialRing(Fp(char), vars)
+    R, X = PolynomialRing(Fp(char), vars; degree_bound = 3)
     global X
     for (i, s) in enumerate(vars)
         eval(parse("$s = X[$i]"))
