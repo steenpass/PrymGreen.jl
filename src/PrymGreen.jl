@@ -57,6 +57,7 @@ println("size = ", size)
     R = Singular.base_ring(r)
     ring = R.ptr
     ordstr = icxx"""rOrdStr($ring);"""
+println(unsafe_string(ordstr));
     if !ismatch(r"^dp\([0-9].*\),c", unsafe_string(ordstr))
         error("monomial ordering must be (dp, c)")
     end
