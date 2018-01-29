@@ -2,7 +2,7 @@
 
 static int** init_binomial_coeffs(int g)
 {
-    int size = g-4;
+    int size = g-3;
     int **B = (int **)malloc(size * sizeof(int *));
     B[0] = (int *)calloc(size * size, sizeof(int));
     for (int i = 0; i < size; i++) {
@@ -34,15 +34,11 @@ static int binom(int n, int k, int **B)
 #define h_shift(h, v, f, B) binom(h+v+f-3, h-1, B)
 #define v_shift(h, v, f, B) binom(h+v+f-3, v-1, B)
 
-static msize_t prym_green_size(int *hblocks, int n_hblocks, int g, int **B)
+static msize_t prym_green_size(int g, int **B)
 {
-    msize_t size = 0;
-    // sum up h_shift's of all blocks in the first row
-    int f = 2;
-    int v = g/2-f-1;
-    for (int i = 0; i < n_hblocks; i++) {
-	size += (msize_t)(hblocks[i]*h_shift(i+1, v, f, B));
-    }
+    // sum up v_shift's of all blocks in the last column
+    msize_t size = 3*(msize_t)binom(g-5, g/2-4, B)
+        + g*(msize_t)binom(g-4, g/2-4, B);
     return size;
 }
 
@@ -223,7 +219,7 @@ static nvals_t check_matrix_currRing(entry_t **values_ptr, resolvente res,
     }
     hblocks[n_hblocks-1] = g-7;
 
-    if (size != prym_green_size(hblocks, n_hblocks, g, B)) {
+    if (size != prym_green_size(g, B)) {
         fprintf(stderr, "matrix not square, returning 0\n");
         return 0;   // error
     }
