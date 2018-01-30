@@ -36,8 +36,8 @@ function load_example(filename::String)
     basis = split(basis, ['\n', ' ', '[', ',', ']'], keep=false)
     basis = Array{String,1}(basis)
     free(example_xml)
-    R, X = PolynomialRing(Fp(char), vars; degree_bound = 3)
     global X
+    R, X = PolynomialRing(Fp(char), vars)
     for (i, s) in enumerate(vars)
         eval(parse("$s = X[$i]"))
     end
@@ -61,6 +61,31 @@ function resort(I::sideal)
         J[i+ngens(I)-k] = I[k]
     end
     J
+end
+
+#=
+This function can be simplified as soon as maps between polynomial rings are
+available in Singular.jl.
+=#
+function set_degree_bound(R::PolyRing, I::sideal, d::Int)
+    for i in 1:ngens(I)
+        if degree(I[i]) > d
+            error("degree bound too low")
+        end
+    end
+    I.isGB = true
+    r = fres(I, 0, "frame")
+    B = betti(r)
+    if size(B, 1) > d
+        error("degree bound possibly too low to compute free resolution")
+    end
+    vars = [ string(Singular.gens(R)[i]) for i in 1:ngens(R) ]
+    global X
+    S, X = PolynomialRing(base_ring(R), vars; degree_bound = d)
+    for (i, s) in enumerate(vars)
+        eval(parse("$s = X[$i]"))
+    end
+    Ideal(S, [ eval(parse(string(I[i]))) for i in 1:ngens(I) ])
 end
 
 function submatrix(r::Singular.sresolution, g::Int, char::Entry_t)
@@ -103,6 +128,7 @@ println("g = ", g)
 println("char = ", char)
     I = std(I; complete_reduction = true)
     I = resort(I)
+    I = set_degree_bound(R, I, 3)
     I.isGB = true
     @time r = fres(I, div(g, 2)-2, "single module")
 println(r)
