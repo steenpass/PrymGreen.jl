@@ -4,7 +4,7 @@ using LightXML
 using Cxx
 using Singular
 
-export load_example, submatrix, check_prym_green_conjecture
+export load_example, resort, submatrix, check_prym_green_conjecture
 
 const pkgdir = dirname(dirname(@__FILE__))
 addHeaderDir(joinpath(pkgdir, "local", "include"), kind = C_User)
@@ -42,6 +42,24 @@ function load_example(filename::String)
     end
     I = Ideal(R, [ eval(parse(s)) for s in basis ])
     R, I, key
+end
+
+function resort(I::sideal)
+    R = Singular.base_ring(I)
+    J = Ideal(R, [R() for i in 1:ngens(I)]...)
+    i = 1
+    for j = 1:ngens(I)
+        if degree(I[j]) != degree(I[i])
+            for k = (j-1):-1:i
+                J[i-1+j-k] = I[k]
+            end
+            i = j
+        end
+    end
+    for k = ngens(I):-1:i
+        J[i+ngens(I)-k] = I[k]
+    end
+    J
 end
 
 function submatrix(r::Singular.sresolution, g::Int, char::Entry_t)
