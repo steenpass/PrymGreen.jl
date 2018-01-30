@@ -4,7 +4,8 @@ using LightXML
 using Cxx
 using Singular
 
-export load_example, resort, submatrix, check_prym_green_conjecture
+export load_example, resort, submatrix, run_example,
+    check_prym_green_conjecture
 
 const pkgdir = dirname(dirname(@__FILE__))
 addHeaderDir(joinpath(pkgdir, "local", "include"), kind = C_User)
@@ -91,6 +92,22 @@ println("n_values = ", n_values)
     A = unsafe_wrap(Array, unsafe_load(values_ptr), (n_values, ), true)
     icxx"""free($values_ptr);"""
     A
+end
+
+function run_example(filename::String)
+    R, I, key = load_example(filename)
+println(key)
+    g = parse(Int, match(r"(?<=g)(.*)(?=_)", key).match)
+println("g = ", g)
+    char = parse(PrymGreen.Entry_t, match(r"(?<=@)(.*)(?=g)", key).match)
+println("char = ", char)
+    I = std(I; complete_reduction = true)
+    I = resort(I)
+    I.isGB = true
+    @time r = fres(I, div(g, 2)-2, "single module")
+println(r)
+    @time A = submatrix(r, g, char)
+println(map(x -> Int(x), A[1:10]))
 end
 
 function check_prym_green_conjecture()
