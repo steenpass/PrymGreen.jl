@@ -4,7 +4,7 @@ using LightXML
 using Cxx
 using Singular
 
-export load_example, submatrix, prym_green_matrix, check_prym_green_conjecture
+export load_example, submatrix, check_prym_green_conjecture
 
 const pkgdir = dirname(dirname(@__FILE__))
 addHeaderDir(joinpath(pkgdir, "local", "include"), kind = C_User)
@@ -72,33 +72,6 @@ println("n_values = ", n_values)
     end
     A = unsafe_wrap(Array, unsafe_load(values_ptr), (n_values, ), true)
     icxx"""free($values_ptr);"""
-    A
-end
-
-function prym_green_matrix(r::Singular.sresolution, g::Int)
-    index = div(g, 2)-2
-    B = betti(r)
-    size = B[3, index]
-    if size != B[2, index+1]
-        error("matrix not square")
-    end
-    limit = B[2, index]
-    m = r[index]
-    PR = Singular.base_ring(m)
-    CR = Singular.base_ring(PR)
-    A = spzeros(size, size)
-    for i = 1:size
-        ptr = m[i].ptr
-        while ptr != C_NULL
-            j = Singular.libSingular.p_GetComp(ptr, PR.ptr)-limit
-            if j > 0
-                n = Singular.libSingular.pGetCoeff(ptr)
-                a = CR(Singular.libSingular.n_Copy(n, CR.ptr))
-                A[i, j] = Int(a)
-            end
-            ptr = Singular.libSingular.pNext(ptr)
-        end
-    end
     A
 end
 
