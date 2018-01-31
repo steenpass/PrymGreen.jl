@@ -130,6 +130,7 @@ println("char = ", char)
     I = resort(I)
     I = set_degree_bound(R, I, 3)
     I.isGB = true
+    gc()
     @time r = fres(I, div(g, 2)-2, "single module")
 println(r)
     @time A = submatrix(r, g, char)
