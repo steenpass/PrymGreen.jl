@@ -21,6 +21,8 @@ function __init__()
     Libdl.dlopen(joinpath("libprymgreen"), Libdl.RTLD_GLOBAL)
 end
 
+include("singular_tools.jl")
+
 function load_example(filename::String)
     file = open(filename)
     s = "<root>\n" * readstring(file) * "</root>"
@@ -100,12 +102,11 @@ println("size = ", size)
     r_ptr = r.ptr
     R = Singular.base_ring(r)
     ring = R.ptr
-    ordstr = icxx"""rOrdStr($ring);"""
-println(unsafe_string(ordstr));
-    if !ismatch(r"^dp\([0-9].*\),c", unsafe_string(ordstr))
+    ordstr = rOrdStr(ring)
+println(ordstr);
+    if !ismatch(r"^dp\([0-9].*\),c", ordstr)
         error("monomial ordering must be (dp, c)")
     end
-    icxx"""omFree($ordstr);"""
     values_ptr = icxx"""(entry_t **)malloc(sizeof(entry_t *));"""
     n_values = icxx"""
             check_matrix($values_ptr, $r_ptr, $g, $size, $limit, $char, $ring);
