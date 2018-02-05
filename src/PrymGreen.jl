@@ -39,7 +39,8 @@ function load_example(filename::String)
     basis = Array{String,1}(basis)
     free(example_xml)
     global X
-    R, X = Singular.PolynomialRing(Fp(char), vars)
+    R, X = Singular.PolynomialRing(Fp(char), vars; ordering = :degrevlex,
+            ordering2 = :comp1max)
     for (i, s) in enumerate(vars)
         eval(parse("$s = X[$i]"))
     end
@@ -83,7 +84,8 @@ function set_degree_bound(R::Singular.PolyRing, I::sideal, d::Int)
     end
     vars = [ string(Singular.gens(R)[i]) for i in 1:ngens(R) ]
     global X
-    S, X = Singular.PolynomialRing(base_ring(R), vars; degree_bound = d)
+    S, X = Singular.PolynomialRing(base_ring(R), vars; degree_bound = d,
+            ordering = :degrevlex, ordering2 = :comp1max)
     for (i, s) in enumerate(vars)
         eval(parse("$s = X[$i]"))
     end
