@@ -132,7 +132,8 @@ println("char = ", char)
     I = set_degree_bound(R, I, 3)
     I.isGB = true
     gc()
-    @time r = fres(I, div(g, 2)-2, "single module")
+    @time r = fres(I, div(g, 2)-2, "single module", use_cache = false,
+            use_tensor_trick = true)
 println(r)
     @time A = submatrix(r, g, char)
 println(map(x -> Int(x), A[1:10]))
