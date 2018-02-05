@@ -28,7 +28,7 @@ function load_example(filename::String)
     s = "<root>\n" * readstring(file) * "</root>"
     close(file)
     example_xml = parse_string(s)
-    root_xml = root(example_xml)
+    root_xml = LightXML.root(example_xml)
     key = LightXML.content(find_element(root_xml, "Key"))
     char = parse(Int64, LightXML.content(find_element(root_xml, "char")))
     vars = LightXML.content(find_element(root_xml, "vars"))
@@ -39,7 +39,7 @@ function load_example(filename::String)
     basis = Array{String,1}(basis)
     free(example_xml)
     global X
-    R, X = PolynomialRing(Fp(char), vars)
+    R, X = Singular.PolynomialRing(Fp(char), vars)
     for (i, s) in enumerate(vars)
         eval(parse("$s = X[$i]"))
     end
@@ -52,7 +52,7 @@ function resort(I::sideal)
     J = Ideal(R, [R() for i in 1:ngens(I)]...)
     i = 1
     for j = 1:ngens(I)
-        if degree(I[j]) != degree(I[i])
+        if Singular.degree(I[j]) != Singular.degree(I[i])
             for k = (j-1):-1:i
                 J[i-1+j-k] = I[k]
             end
@@ -69,9 +69,9 @@ end
 This function can be simplified as soon as maps between polynomial rings are
 available in Singular.jl.
 =#
-function set_degree_bound(R::PolyRing, I::sideal, d::Int)
+function set_degree_bound(R::Singular.PolyRing, I::sideal, d::Int)
     for i in 1:ngens(I)
-        if degree(I[i]) > d
+        if Singular.degree(I[i]) > d
             error("degree bound too low")
         end
     end
@@ -83,7 +83,7 @@ function set_degree_bound(R::PolyRing, I::sideal, d::Int)
     end
     vars = [ string(Singular.gens(R)[i]) for i in 1:ngens(R) ]
     global X
-    S, X = PolynomialRing(base_ring(R), vars; degree_bound = d)
+    S, X = Singular.PolynomialRing(base_ring(R), vars; degree_bound = d)
     for (i, s) in enumerate(vars)
         eval(parse("$s = X[$i]"))
     end

@@ -1,8 +1,11 @@
 using Cxx
+using Nemo
 using Singular
 using Singular.libSingular
 
-function id_fres(I::ideal, n::Cint, method::String, R::ring)
+# modified copy from Singular.jl (commit b277b7c)
+function id_fres(I::libSingular.ideal, n::Cint, method::String,
+        R::libSingular.ring)
     s = icxx"""const ring origin = currRing;
             rChangeCurrRing($R);
             syStrategy s = syFrank($I, $n, $method);
@@ -14,6 +17,7 @@ function id_fres(I::ideal, n::Cint, method::String, R::ring)
     r, Int(length)
 end
 
+# modified copy from Singular.jl (commit b277b7c)
 function fres{T <: Nemo.RingElem}(id::sideal{T}, max_length::Int,
         method::String="complete")
     id.isGB == false && error("ideal is not a standard basis")
@@ -29,8 +33,8 @@ function fres{T <: Nemo.RingElem}(id::sideal{T}, max_length::Int,
             && method != "single module")
         error("wrong optional argument for fres")
     end
-    r, length = libSingular.id_fres(id.ptr, Cint(max_length), method, R.ptr)
-    return sresolution{T}(R, length, r)
+    r, length = id_fres(id.ptr, Cint(max_length), method, R.ptr)
+    return Singular.sresolution{T}(R, length, r)
 end
 
 function rOrdStr(r::libSingular.ring)
