@@ -97,40 +97,40 @@ end
 function submatrix(r::Singular.sresolution, g::Int, char::Entry_t)
     index = div(g, 2)-2
     B = Singular.betti(r)
-    size = Msize_t(B[3, index])
-    if size != Msize_t(B[2, index+1])
+    prym_green_size = Msize_t(B[3, index])
+    if prym_green_size != Msize_t(B[2, index+1])
         error("matrix not square")
     end
-println("size = ", size)
     limit = Msize_t(B[2, index])
     r_ptr = r.ptr
     R = Singular.base_ring(r)
     ring = R.ptr
     ordstr = rOrdStr(ring)
-println(ordstr);
     if !ismatch(r"^dp\([0-9].*\),c", ordstr)
         error("monomial ordering must be (dp, c)")
     end
     values_ptr = icxx"""(entry_t **)malloc(sizeof(entry_t *));"""
-    n_values = icxx"""
-            check_matrix($values_ptr, $r_ptr, $g, $size, $limit, $char, $ring);
-        """
-println("n_values = ", n_values)
+    n_values = icxx"""check_matrix($values_ptr, $r_ptr, $g, $prym_green_size,
+            $limit, $char, $ring);"""
     if n_values == 0
         error("number of values in prym green matrix must be positive")
     end
     A = unsafe_wrap(Array, unsafe_load(values_ptr), (n_values, ), true)
     icxx"""free($values_ptr);"""
-    A
+    A, prym_green_size
 end
 
-function run_example(filename::String)
+function print_matrix_info(A::Array{Entry_t, 1}, prym_green_size::Msize_t)
+    println("p_g_size = ", prym_green_size)
+    println("n_values = ", size(A, 1))
+    println(map(x -> Int(x), A[1:10]))
+end
+
+function run_example(filename::String; print_info::Bool = false)
     R, I, key = load_example(filename)
-println(key)
+    print_info && println(key)
     g = parse(Int, match(r"(?<=g)(.*)(?=_)", key).match)
-println("g = ", g)
     char = parse(PrymGreen.Entry_t, match(r"(?<=@)(.*)(?=g)", key).match)
-println("char = ", char)
     I = Singular.std(I; complete_reduction = true)
     I = resort(I)
     I = set_degree_bound(R, I, 3)
@@ -138,9 +138,9 @@ println("char = ", char)
     gc()
     @time r = PrymGreen.fres(I, div(g, 2)-2, "single module";
             use_cache = false, use_tensor_trick = true)
-println(r)
-    @time A = submatrix(r, g, char)
-println(map(x -> Int(x), A[1:10]))
+    @time A, prym_green_size = submatrix(r, g, char)
+    print_info && print_matrix_info(A, prym_green_size)
+    nothing
 end
 
 function check_prym_green_conjecture()
