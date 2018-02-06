@@ -4,14 +4,14 @@ static int** init_binomial_coeffs(int g)
 {
     int size = g-3;
     int **B = (int **)malloc(size * sizeof(int *));
-    B[0] = (int *)calloc(size * size, sizeof(int));
-    for (int i = 0; i < size; i++) {
-        B[i] = (*B + size * i);
-    }
-    for (int i = 0; i < size; i++) {
-        B[i][0] = 1;
-        for (int j = 1; j <= i; j++) {
-            B[i][j] = B[i-1][j-1]+B[i-1][j];
+    *B = (int *)malloc((size*(size+1)/2) * sizeof(int));
+    B[0][0] = 1;
+    for (int n = 1; n < size; n++) {
+        B[n] = B[n-1]+n;
+        B[n][0] = 1;
+        B[n][n] = 1;
+        for (int k = 1; k < n; k++) {
+            B[n][k] = B[n-1][k-1]+B[n-1][k];
         }
     }
     return B;
