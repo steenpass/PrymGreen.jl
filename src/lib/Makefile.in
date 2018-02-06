@@ -13,21 +13,29 @@ LINKING_OPTIONS+=-L$(FLINT_DIR)/lib -L$(SINGULAR_DIR)/lib -lflint
 all: $(LIBNAME)
 
 prym_green.o: prym_green.c
-	$(CC) -c $(CFLAGS) $(INCLUDE_FLINT) $< -o $@
+	@echo "  CC      $@"
+	$(Q)$(CC) -c $(CFLAGS) $(INCLUDE_FLINT) -o$@ $<
 
 submatrix.o: submatrix.cc
-	$(CXX) -c $(CXXFLAGS) $(INCLUDE_SINGULAR) $< -o $@
+	@echo "  CXX     $@"
+	$(Q)$(CXX) -c $(CXXFLAGS) $(INCLUDE_SINGULAR) -o$@ $<
 
 $(LIBNAME): $(OBJECTS)
-	$(CC) -shared -fPIC $(LINKING_OPTIONS) -o $(LIBNAME) $(OBJECTS)
+	@echo "  CCLD    $@"
+	$(Q)$(CC) -shared -fPIC $(LINKING_OPTIONS) -o$(LIBNAME) $(OBJECTS)
 
 install: $(LIBNAME)
-	mkdir -p $(PREFIX)/lib
-	mkdir -p $(PREFIX)/include
-	cp $(LIBNAME) $(PREFIX)/lib
-	cp $(HEADERS) $(PREFIX)/include
+	$(Q)mkdir -p $(PREFIX)/include
+	$(Q)mkdir -p $(PREFIX)/lib
+	@echo "  CP      $(HEADERS)"
+	$(Q)cp $(HEADERS) $(PREFIX)/include
+	@echo "  CP      $(LIBNAME)"
+	$(Q)cp $(LIBNAME) $(PREFIX)/lib
 
 clean:
-	rm *.o *.so
+	@echo "  RM      $(OBJECTS)"
+	$(Q)rm -f $(OBJECTS)
+	@echo "  RM      $(LIBNAME)"
+	$(Q)rm -f $(LIBNAME)
 
 .PHONY: clean

@@ -4,22 +4,20 @@ FLINT_DIR=/usr/local
 SINGULAR_DIR=/usr/local
 
 absolute_path() {
-    dirlist="$1"
-    retval=""
-    for dir in $dirlist; do
-        case $dir in
-            /*) dir=$dir;;
-            *) dir=$PWD/$dir;;
-        esac
-        retval=$retval" "$dir
-    done
-    echo $retval
+    dir="$1"
+    if [[ $dir != /* ]]; then
+        dir=$PWD/$dir
+    fi
+    echo $dir
 }
 
 while [ "$1" != "" ]; do
     PARAM=`echo $1 | sed 's/=.*//'`
     VALUE=`echo $1 | sed 's/[^=]*//; s/=//'`
     case "$PARAM" in
+        --enable-silent-rules)
+            Q=@
+            ;;
         --prefix)
             PREFIX="$VALUE"
             ;;
@@ -69,6 +67,7 @@ echo "CXXFLAGS=$CXXFLAGS" >> Makefile
 echo "PREFIX=$PREFIX" >> Makefile
 echo "FLINT_DIR=$FLINT_DIR" >> Makefile
 echo "SINGULAR_DIR=$SINGULAR_DIR" >> Makefile
+echo "Q=$Q" >> Makefile
 echo "" >> Makefile
 
 cat Makefile.in >> Makefile
