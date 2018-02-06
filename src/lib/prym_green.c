@@ -1,9 +1,4 @@
-#include <flint/ulong_extras.h>
-#include <flint/longlong.h>
-
-#if FLINT_BITS != 64
-#error "not implemented for FLINT_BITS != 64"
-#endif
+#include "prym_green.h"
 
 ulong mult_preinv_test(ulong a, ulong b, ulong n, long N)
 {
