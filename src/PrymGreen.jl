@@ -136,6 +136,7 @@ end
 function print_matrix_info(A::Array{Entry_t, 1}, prym_green_size::Msize_t)
     println("p_g_size = ", prym_green_size)
     println("n_values = ", size(A, 1))
+    println("max bytes: ", Singular_MaxBytesSystem())
     println(map(x -> Int(x), A[1:10]))
 end
 

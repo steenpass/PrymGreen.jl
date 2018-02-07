@@ -8,7 +8,8 @@ use_tensor_trick available
 =#
 function id_fres(I::Singular.libSingular.ideal, n::Cint, method::String,
         R::Singular.libSingular.ring, use_cache::Bool, use_tensor_trick::Bool)
-    s = icxx"""const ring origin = currRing;
+    s = icxx"""
+            const ring origin = currRing;
             rChangeCurrRing($R);
             syStrategy s = syFrank($I, $n, $method, $use_cache,
                     $use_tensor_trick);
@@ -50,4 +51,11 @@ function rOrdStr(r::Singular.libSingular.ring)
     res = unsafe_string(ordstr)
     icxx"""omFree($ordstr);"""
     res
+end
+
+function Singular_MaxBytesSystem()
+    icxx"""
+            omUpdateInfo();
+            om_Info.MaxBytesSystem;
+        """
 end
