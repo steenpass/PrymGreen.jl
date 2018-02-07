@@ -250,7 +250,7 @@ static nvals_t check_matrix_currRing(entry_t **values_ptr, resolvente res,
 {
     /* check size */
     if (size != prym_green_size(g, B)) {
-        fprintf(stderr, "matrix not square\n");
+        fprintf(stderr, "error: matrix not square\n");
         return 0;   // error
     }
 
@@ -283,7 +283,7 @@ static nvals_t check_matrix_currRing(entry_t **values_ptr, resolvente res,
     /* check entries and return */
     if (!check_entries(values_ptr, columns, hblocks, n_hblocks, g, size, limit,
             c, B)) {
-        fprintf(stderr, "matrix does not admit Prym-Green structure\n");
+        fprintf(stderr, "error: matrix does not admit Prym-Green structure\n");
         n_values = 0;   // error
     }
     free(columns);

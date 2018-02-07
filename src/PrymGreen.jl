@@ -4,10 +4,9 @@ using LightXML
 using Cxx
 using Singular
 
-export load_example, resort, submatrix, run_example,
-    check_prym_green_conjecture
+export run_example, check_prym_green_conjecture
 
-const pkgdir = dirname(dirname(@__FILE__))
+const pkgdir = Pkg.dir("PrymGreen")   # to be replaced with @__MODULE__
 addHeaderDir(joinpath(pkgdir, "local", "include"), kind = C_User)
 cxxinclude(joinpath("submatrix.h"), isAngled = false)
 
@@ -23,7 +22,7 @@ end
 
 include("singular_tools.jl")
 
-function load_example(filename::String)
+function read_xml_file(filename::String)
     file = open(filename)
     s = "<root>\n" * readstring(file) * "</root>"
     close(file)
@@ -39,6 +38,11 @@ function load_example(filename::String)
     basis = split(basis, ['\n', ' ', '[', ',', ']'], keep = false)
     basis = Array{String, 1}(basis)
     LightXML.free(example_xml)
+    key, char, vars, basis
+end
+
+function load_example(filename::String)
+    key, char, vars, basis = read_xml_file(filename)
     global X
     R, X = Singular.PolynomialRing(Singular.Fp(char), vars;
             ordering = :degrevlex, ordering2 = :comp1max)
@@ -49,14 +53,13 @@ function load_example(filename::String)
     R, I, key
 end
 
-function resort(I::Singular.sideal)
-    R = Singular.base_ring(I)
-    J = Singular.Ideal(R, [R() for i in 1:Singular.ngens(I)]...)
+function resort(I::Singular.sideal, R::Singular.PolyRing)
+    J = Singular.Ideal(R, [ R() for i in 1:Singular.ngens(I) ]...)
     i = 1
     for j = 1:Singular.ngens(I)
         if Singular.degree(I[j]) != Singular.degree(I[i])
             for k = (j-1):-1:i
-                J[i-1+j-k] = I[k]
+                J[i+j-1-k] = I[k]
             end
             i = j
         end
@@ -90,30 +93,40 @@ function set_degree_bound(R::Singular.PolyRing, I::Singular.sideal, d::Int)
     for (i, s) in enumerate(vars)
         eval(parse("$s = X[$i]"))
     end
-    Singular.Ideal(S,
+    J = Singular.Ideal(S,
             [ eval(parse(string(I[i]))) for i in 1:Singular.ngens(I) ])
+    S, J
 end
 
-function submatrix(r::Singular.sresolution, g::Int, char::Entry_t)
+function check_ordering(R::Singular.PolyRing)
+    ordstr = rOrdStr(R.ptr)
+    if !ismatch(r"^dp\([0-9].*\),c", ordstr)
+        error("monomial ordering must be (dp, c)")
+    end
+end
+
+function betti_table_entries(res::Singular.sresolution, g::Int)
     index = div(g, 2)-2
-    B = Singular.betti(r)
+    B = Singular.betti(res)
     prym_green_size = Msize_t(B[3, index])
     if prym_green_size != Msize_t(B[2, index+1])
         error("matrix not square")
     end
     limit = Msize_t(B[2, index])
-    r_ptr = r.ptr
-    R = Singular.base_ring(r)
-    ring = R.ptr
-    ordstr = rOrdStr(ring)
-    if !ismatch(r"^dp\([0-9].*\),c", ordstr)
-        error("monomial ordering must be (dp, c)")
-    end
+    prym_green_size, limit
+end
+
+function submatrix(res::Singular.sresolution, R::Singular.PolyRing, g::Int,
+        char::Entry_t)
+    check_ordering(R)
+    prym_green_size, limit = betti_table_entries(res, g)
     values_ptr = icxx"""(entry_t **)malloc(sizeof(entry_t *));"""
-    n_values = icxx"""check_matrix($values_ptr, $r_ptr, $g, $prym_green_size,
-            $limit, $char, $ring);"""
+    res_ptr = res.ptr
+    R_ptr = R.ptr
+    n_values = icxx"""check_matrix($values_ptr, $res_ptr, $g, $prym_green_size,
+            $limit, $char, $R_ptr);"""
     if n_values == 0
-        error("number of values in prym green matrix must be positive")
+        error("number of values in Prym-Green matrix must be positive")
     end
     A = unsafe_wrap(Array, unsafe_load(values_ptr), (n_values, ), true)
     icxx"""free($values_ptr);"""
@@ -132,13 +145,15 @@ function run_example(filename::String; print_info::Bool = false)
     g = parse(Int, match(r"(?<=g)(.*)(?=_)", key).match)
     char = parse(PrymGreen.Entry_t, match(r"(?<=@)(.*)(?=g)", key).match)
     I = Singular.std(I; complete_reduction = true)
-    I = resort(I)
-    I = set_degree_bound(R, I, 3)
+    I = resort(I, R)
+    R, I = set_degree_bound(R, I, 3)
     I.isGB = true
     gc()
-    @time r = PrymGreen.fres(I, div(g, 2)-2, "single module";
+    @time res = PrymGreen.fres(I, div(g, 2)-2, "single module";
             use_cache = false, use_tensor_trick = true)
-    @time A, prym_green_size = submatrix(r, g, char)
+    @time A, prym_green_size = submatrix(res, R, g, char)
+    res = nothing
+    gc()
     print_info && print_matrix_info(A, prym_green_size)
     nothing
 end
