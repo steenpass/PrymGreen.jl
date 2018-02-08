@@ -1,6 +1,7 @@
 SOURCES_C=prym_green.c
 SOURCES_CXX=submatrix.cc
-HEADERS=$(SOURCES_C:.c=.h) $(SOURCES_CXX:.cc=.h)
+HEADERS=prym_green_types.h
+HEADERS+=$(SOURCES_C:.c=.h) $(SOURCES_CXX:.cc=.h)
 OBJECTS=$(SOURCES_C:.c=.o) $(SOURCES_CXX:.cc=.o)
 LIBNAME=libprymgreen.so
 

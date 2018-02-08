@@ -140,6 +140,16 @@ function print_matrix_info(A::Array{Entry_t, 1}, prym_green_size::Msize_t)
     println(map(x -> Int(x), A[1:10]))
 end
 
+function recurrence_sequence(A)
+    seq_ptr = ccall((:malloc, "libc"), Ptr{Ptr{UInt64}}, (Csize_t, ),
+            sizeof(Ptr{UInt64}))
+    size_seq = ccall((:recurrence_sequence, "libprymgreen"), Msize_t,
+            (Ptr{Ptr{UInt64}}, Ptr{Entry_t}, Nvals_t), seq_ptr, A, size(A, 1))
+    seq = unsafe_wrap(Array, unsafe_load(seq_ptr), (size_seq, ), true)
+    ccall((:free, "libc"), Void, (Ptr{Ptr{UInt64}}, ), seq_ptr)
+    seq
+end
+
 function run_example(filename::String; print_info::Bool = false)
     R, I, key = load_example(filename)
     print_info && println(key)
@@ -156,6 +166,8 @@ function run_example(filename::String; print_info::Bool = false)
     res = nothing
     gc()
     print_info && print_matrix_info(A, prym_green_size)
+    @time S = recurrence_sequence(A)
+    print_info && println(map(x -> Int(x), S[1:10]))
     nothing
 end
 
