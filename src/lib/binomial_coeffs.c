@@ -46,3 +46,19 @@ nvals_t count_values_block(int h, int v, int f, int **B)
     }
     return (nvals_t)binom(h+v+f-3, f-1, B);
 }
+
+int init_horizontal_blocks(int **hblocks_ptr, int g)
+{
+    int n_hblocks = g/2-1;
+    *hblocks_ptr = (int *)malloc(n_hblocks*sizeof(int));
+    for (int i = 0; i < n_hblocks-1; i++) {
+        (*hblocks_ptr)[i] = g/2+i-2;
+    }
+    (*hblocks_ptr)[n_hblocks-1] = g-7;
+    return n_hblocks;
+}
+
+void clear_horizontal_blocks(int **hblocks_ptr)
+{
+    free(*hblocks_ptr);
+}

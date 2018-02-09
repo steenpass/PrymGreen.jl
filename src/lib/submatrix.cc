@@ -205,12 +205,8 @@ static nvals_t check_matrix_currRing(entry_t **values_ptr, resolvente res,
     }
 
     /* define horizontal blocks */
-    int n_hblocks = g/2-1;
-    int hblocks[n_hblocks];
-    for (int i = 0; i < n_hblocks-1; i++) {
-        hblocks[i] = g/2+i-2;
-    }
-    hblocks[n_hblocks-1] = g-7;
+    int **hblocks_ptr = (int **)malloc(sizeof(int *));
+    int n_hblocks = init_horizontal_blocks(hblocks_ptr, g);
 
     /* define array of columns */
     poly *columns = (poly *)malloc(size*sizeof(poly));
@@ -223,7 +219,7 @@ static nvals_t check_matrix_currRing(entry_t **values_ptr, resolvente res,
     }
 
     /* define array of values */
-    nvals_t n_values = count_values(hblocks, n_hblocks, g, B);
+    nvals_t n_values = count_values(*hblocks_ptr, n_hblocks, g, B);
     // this memory block will be handed over to the calling function:
     *values_ptr = (entry_t *)malloc(n_values*sizeof(entry_t));
     for (nvals_t i = 0; i < n_values; i++) {
@@ -231,12 +227,14 @@ static nvals_t check_matrix_currRing(entry_t **values_ptr, resolvente res,
     }
 
     /* check entries and return */
-    if (!check_entries(values_ptr, columns, hblocks, n_hblocks, g, size, limit,
-            c, B)) {
+    if (!check_entries(values_ptr, columns, *hblocks_ptr, n_hblocks, g, size,
+            limit, c, B)) {
         fprintf(stderr, "error: matrix does not admit Prym-Green structure\n");
         n_values = 0;   // error
     }
     free(columns);
+    clear_horizontal_blocks(hblocks_ptr);
+    free(hblocks_ptr);
     return n_values;
 }
 

@@ -17,6 +17,8 @@ void clear_binomial_coeffs(int **B);
 int binom(int n, int k, int **B);
 msize_t prym_green_size(int g, int **B);
 nvals_t count_values_block(int h, int v, int f, int **B);
+int init_horizontal_blocks(int **hblocks_ptr, int g);
+void clear_horizontal_blocks(int **hblocks_ptr);
 
 #ifdef __cplusplus
 }
