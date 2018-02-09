@@ -1,12 +1,16 @@
 #ifndef SUBMATRIX_H
 #define SUBMATRIX_H
 
+#include <stdlib.h>
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-value"
 
 #include "kernel/ideals.h"
 
 #pragma GCC diagnostic pop
+
+#include "binomial_coeffs.h"
 
 #include "prym_green_types.h"
 

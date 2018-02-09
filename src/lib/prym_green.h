@@ -1,8 +1,11 @@
 #ifndef PRYM_GREEN_H
 #define PRYM_GREEN_H
 
+#include <stdlib.h>
 #include <flint/flint.h>
 #include <flint/ulong_extras.h>
+
+#include "binomial_coeffs.h"
 
 #include "prym_green_types.h"
 
