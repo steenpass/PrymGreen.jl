@@ -200,7 +200,7 @@ static nvals_t check_matrix_currRing(entry_t **values_ptr, resolvente res,
 {
     /* check size */
     if (size != prym_green_size(g, B)) {
-        fprintf(stderr, "error: matrix not square\n");
+        fprintf(stderr, "error: Prym-Green size does not fit\n");
         return 0;   // error
     }
 
