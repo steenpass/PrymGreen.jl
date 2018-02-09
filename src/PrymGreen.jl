@@ -140,11 +140,24 @@ function print_matrix_info(A::Array{Entry_t, 1}, prym_green_size::Msize_t)
     println(map(x -> Int(x), A[1:10]))
 end
 
-function recurrence_sequence(A)
+function random_data(prym_green_size::Msize_t, char::Entry_t)
+    seed = rand(RandomDevice(), UInt32, 4)
+    println("seed: ", seed)
+    rng = MersenneTwister(seed)
+    v = Array{Entry_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
+    index = Msize_t(rand(rng, 0:(prym_green_size-1)))
+    v, index
+end
+
+function recurrence_sequence(A::Array{Entry_t, 1}, prym_green_size::Msize_t,
+        g::Int, char::Entry_t)
+    v, index = random_data(prym_green_size, char)
     seq_ptr = ccall((:malloc, "libc"), Ptr{Ptr{UInt64}}, (Csize_t, ),
             sizeof(Ptr{UInt64}))
     size_seq = ccall((:recurrence_sequence, "libprymgreen"), Msize_t,
-            (Ptr{Ptr{UInt64}}, Ptr{Entry_t}, Nvals_t), seq_ptr, A, size(A, 1))
+            (Ptr{Ptr{UInt64}}, Ptr{Entry_t}, Nvals_t, Ptr{Entry_t}, Msize_t,
+                Msize_t, Int),
+            seq_ptr, A, size(A, 1), v, prym_green_size, index, g)
     seq = unsafe_wrap(Array, unsafe_load(seq_ptr), (size_seq, ), true)
     ccall((:free, "libc"), Void, (Ptr{Ptr{UInt64}}, ), seq_ptr)
     seq
@@ -166,7 +179,7 @@ function run_example(filename::String; print_info::Bool = false)
     res = nothing
     gc()
     print_info && print_matrix_info(A, prym_green_size)
-    @time S = recurrence_sequence(A)
+    @time S = recurrence_sequence(A, prym_green_size, g, char)
     print_info && println(map(x -> Int(x), S[1:10]))
     nothing
 end

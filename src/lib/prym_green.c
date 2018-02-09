@@ -1,6 +1,7 @@
 #include "prym_green.h"
 
-msize_t recurrence_sequence(ulong **seq, entry_t *A, nvals_t n_values)
+msize_t recurrence_sequence(ulong **seq, entry_t *A, nvals_t n_values,
+        entry_t* v, msize_t prym_green_size, msize_t index, int g)
 {
     int N = 10;
     *seq = (ulong *)malloc(N*sizeof(ulong));
