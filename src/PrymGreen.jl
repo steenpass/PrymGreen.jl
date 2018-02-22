@@ -154,11 +154,11 @@ function recurrence_sequence(A::Array{Entry_t, 1}, prym_green_size::Msize_t,
     v, index = random_data(prym_green_size, char)
     seq_ptr = ccall((:malloc, "libc"), Ptr{Ptr{UInt64}}, (Csize_t, ),
             sizeof(Ptr{UInt64}))
-    size_seq = ccall((:recurrence_sequence, "libprymgreen"), Msize_t,
+    length_seq = ccall((:recurrence_sequence, "libprymgreen"), Msize_t,
             (Ptr{Ptr{UInt64}}, Ptr{Entry_t}, Nvals_t, Ptr{Entry_t}, Msize_t,
-                Msize_t, Int),
-            seq_ptr, A, size(A, 1), v, prym_green_size, index, g)
-    seq = unsafe_wrap(Array, unsafe_load(seq_ptr), (size_seq, ), true)
+                Msize_t, Int, Entry_t),
+            seq_ptr, A, size(A, 1), v, prym_green_size, index, g, char)
+    seq = unsafe_wrap(Array, unsafe_load(seq_ptr), (length_seq, ), true)
     ccall((:free, "libc"), Void, (Ptr{Ptr{UInt64}}, ), seq_ptr)
     seq
 end
