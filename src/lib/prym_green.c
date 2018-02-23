@@ -1,13 +1,73 @@
 #include "prym_green.h"
 
+static void add_product(entry_t *v_a, entry_t *A, entry_t *v_b, int sign,
+        entry_t c)
+{
+    ulong u_a = *v_a;
+    ulong u_A = *A;
+    ulong u_b = *v_b;
+    ulong u_c = c;
+    ulong inv = n_preinvert_limb(u_c);
+    ulong res = n_mulmod2_preinv(u_A, u_b, u_c, inv);
+    if (sign == -1) {
+        res = u_c-res;
+    }
+    res = n_addmod(u_a, res, u_c);
+    *v_a = (entry_t)res;
+}
+
+static void f_multiply(int h, int v, int sign, entry_t *v_a, entry_t *A,
+        entry_t *v_b, entry_t c, int **B)
+{
+    int size = h_shift(h, v, 1, B);   // == v_shift(h, v, 1, B)
+    for (int i = 0; i < size; i++) {
+        add_product(&v_a[i], A, &v_b[i], sign, c);
+    }
+}
+
+static void h_multiply(int v, int f, int sign, entry_t *v_a, entry_t *A,
+        entry_t *v_b, entry_t c, int **B)
+{
+    int size = v_shift(1, v, f, B);
+    for (int i = 0; i < size; i++) {
+        add_product(&v_a[i], &A[size-i-1], v_b, sign, c);
+        sign *= -1;
+    }
+}
+
+static void v_multiply(int h, int f, int sign, entry_t *v_a, entry_t *A,
+        entry_t *v_b, entry_t c, int **B)
+{
+    int size = h_shift(h, 1, f, B);
+    for (int i = 0; i < size; i++) {
+        add_product(v_a, &A[i], &v_b[i], sign, c);
+    }
+}
+
 static void multiply_koszul_block(int h, int v, int f, int sign, entry_t *v_a,
         entry_t *A, entry_t *v_b, entry_t c, int **B)
 {
-    
+    if (h < 1 || v < 1 || f < 1) {
+        return;
+    }
+    if (f == 1) {
+        return f_multiply(h, v, sign, v_a, A, v_b, c, B);
+    } else if (h == 1 && f == 2) {
+        return h_multiply(v, f, sign, v_a, A, v_b, c, B);
+    } else if (v == 1) {
+        return v_multiply(h, f, sign, v_a, A, v_b, c, B);
+    }   // else:
+    multiply_koszul_block(h-1, v, f, sign, v_a, A, v_b, c, B);
+    v_b += h_shift(h-1, v, f, B);
+    entry_t *f_A = &A[binom(h+v+f-4, f-1, B)];
+    multiply_koszul_block(h, v, f-1, sign, v_a, f_A, v_b, c, B);
+    v_a += v_shift(h, v, f-1, B);
+    sign *= (f%2)*2-1;
+    multiply_koszul_block(h, v-1, f, sign, v_a, A, v_b, c, B);
 }
 
 static void multiply_koszul_row(entry_t **v_a_iter, entry_t **A_iter,
-        entry_t* v_b, int *hblocks, int n_hblocks, int g, int f, entry_t c,
+        entry_t *v_b, int *hblocks, int n_hblocks, int g, int f, entry_t c,
         int **B)
 {
     int v = g/2-f-1;
@@ -26,6 +86,7 @@ static void multiply_koszul_row(entry_t **v_a_iter, entry_t **A_iter,
             v_b += h_shift(i+1, v, f, B);
         }
     }
+    *v_a_iter += v_shift(n_hblocks, v, f, B);
 }
 
 /*
