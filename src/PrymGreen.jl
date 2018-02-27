@@ -153,7 +153,8 @@ end
 
 function dense_matrix(res::Singular.sresolution, R::Singular.PolyRing, g::Int,
         prym_green_size::Msize_t, limit::Msize_t)
-    A_dense_ptr = icxx"""(ulong **)malloc($prym_green_size*sizeof(ulong *));"""
+    A_dense_ptr =
+            icxx"""(entry_t **)malloc($prym_green_size*sizeof(entry_t *));"""
     res_ptr = res.ptr
     R_ptr = R.ptr
     size_A = icxx"""dense_matrix($A_dense_ptr, $res_ptr, $g, $prym_green_size,

@@ -255,7 +255,7 @@ nvals_t check_matrix(entry_t **values_ptr, resolvente res, int g, msize_t size,
  * debug functions
  */
 
-msize_t dense_matrix(ulong **M, resolvente res, int g, msize_t size,
+msize_t dense_matrix(entry_t **M, resolvente res, int g, msize_t size,
         msize_t limit, ring R)
 {
     const ring R_orig = currRing;
@@ -268,7 +268,7 @@ msize_t dense_matrix(ulong **M, resolvente res, int g, msize_t size,
             pIter(columns[i]);
         }
     }
-    *M = (ulong *)calloc(size*size, sizeof(ulong));
+    *M = (entry_t *)calloc(size*size, sizeof(entry_t));
     for (msize_t i = 1; i < size; i++) {
         M[i] = M[i-1]+size;
     }
@@ -282,7 +282,7 @@ msize_t dense_matrix(ulong **M, resolvente res, int g, msize_t size,
                 return 0;   // error
             }
             // julia arrays are stored in column-major order
-            M[i][comp-limit-1] = (ulong)(long)pGetCoeff(columns[i]);
+            M[i][comp-limit-1] = (entry_t)(long)pGetCoeff(columns[i]);
             pIter(columns[i]);
         }
     }
