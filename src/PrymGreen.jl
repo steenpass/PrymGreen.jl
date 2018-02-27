@@ -30,7 +30,7 @@ function read_xml_file(filename::String)
     root_xml = LightXML.root(example_xml)
     key = LightXML.content(LightXML.find_element(root_xml, "Key"))
     char = LightXML.content(LightXML.find_element(root_xml, "char"))
-    char = parse(Int64, char)
+    char = parse(Entry_t, char)
     vars = LightXML.content(LightXML.find_element(root_xml, "vars"))
     vars = split(vars, ['\n', ' ', '[', ',', ']'], keep = false)
     vars = Array{String, 1}(vars)
@@ -44,7 +44,7 @@ end
 function load_example(filename::String)
     key, char, vars, basis = read_xml_file(filename)
     global X
-    R, X = Singular.PolynomialRing(Singular.Fp(char), vars;
+    R, X = Singular.PolynomialRing(Singular.Fp(Int(char)), vars;
             ordering = :degrevlex, ordering2 = :comp1max)
     for (i, s) in enumerate(vars)
         eval(parse("$s = X[$i]"))
