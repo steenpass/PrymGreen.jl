@@ -133,25 +133,58 @@ function submatrix(res::Singular.sresolution, R::Singular.PolyRing, g::Int,
     A, prym_green_size
 end
 
+function init_rng()
+    seed = rand(RandomDevice(), UInt32, 4)
+    println("rng seed = ", seed)
+    MersenneTwister(seed)
+end
+
+function multiply_matrix(A::Array{Entry_t, 1}, v::Array{Entry_t, 1}, g::Int,
+        char::Entry_t)
+    Axv_ptr = ccall((:malloc, "libc"), Ptr{Ptr{Entry_t}}, (Csize_t, ),
+            sizeof(Ptr{Entry_t}))
+    length_Axv = ccall((:multiply_matrix, "libprymgreen"), Msize_t,
+            (Ptr{Ptr{Entry_t}}, Ptr{Entry_t}, Ptr{Entry_t}, Int, Entry_t),
+            Axv_ptr, A, v, g, char)
+    Axv = unsafe_wrap(Array, unsafe_load(Axv_ptr), (length_Axv, ), true)
+    ccall((:free, "libc"), Void, (Ptr{Ptr{Entry_t}}, ), Axv_ptr)
+    Axv
+end
+
+function dense_matrix(res::Singular.sresolution, R::Singular.PolyRing, g::Int,
+        prym_green_size::Msize_t, limit::Msize_t)
+    A_dense_ptr = icxx"""(ulong **)malloc($prym_green_size*sizeof(ulong *));"""
+    res_ptr = res.ptr
+    R_ptr = R.ptr
+    size_A = icxx"""dense_matrix($A_dense_ptr, $res_ptr, $g, $prym_green_size,
+            $limit, $R_ptr);"""
+    A_dense = unsafe_wrap(Array, unsafe_load(A_dense_ptr), (size_A, size_A),
+            true)
+    icxx"""free($A_dense_ptr);"""
+    A_dense
+end
+
+function check_multiplication(A::Array{Entry_t, 1}, res::Singular.sresolution,
+        R::Singular.PolyRing, g::Int, char::Entry_t, rng::AbstractRNG)
+    g > 18 && return
+    prym_green_size, limit = betti_table_entries(res, g)
+    v = Array{Entry_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
+    Axv = multiply_matrix(A, v, g, char)
+    A_dense = dense_matrix(res, R, g, prym_green_size, limit)
+    println("mlt. test: ", Axv == A_dense*v .% char ? "passed" : "failed")
+end
+
 function print_matrix_info(A::Array{Entry_t, 1}, prym_green_size::Msize_t)
     println("p_g_size = ", prym_green_size)
     println("n_values = ", size(A, 1))
     println("max bytes: ", Singular_MaxBytesSystem())
-    println(map(x -> Int(x), A[1:10]))
-end
-
-function random_data(prym_green_size::Msize_t, char::Entry_t)
-    seed = rand(RandomDevice(), UInt32, 4)
-    println("seed: ", seed)
-    rng = MersenneTwister(seed)
-    v = Array{Entry_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
-    index = Msize_t(rand(rng, 0:(prym_green_size-1)))
-    v, index
+    println("A[1:4]   = ", map(x -> Int(x), A[1:4]))
 end
 
 function recurrence_sequence(A::Array{Entry_t, 1}, prym_green_size::Msize_t,
-        g::Int, char::Entry_t)
-    v, index = random_data(prym_green_size, char)
+        g::Int, char::Entry_t, rng::AbstractRNG)
+    v = Array{Entry_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
+    index = Msize_t(rand(rng, 0:(prym_green_size-1)))
     seq_ptr = ccall((:malloc, "libc"), Ptr{Ptr{UInt64}}, (Csize_t, ),
             sizeof(Ptr{UInt64}))
     length_seq = ccall((:recurrence_sequence, "libprymgreen"), Msize_t,
@@ -176,11 +209,13 @@ function run_example(filename::String; print_info::Bool = false)
     @time res = PrymGreen.fres(I, div(g, 2)-2, "single module";
             use_cache = false, use_tensor_trick = true)
     @time A, prym_green_size = submatrix(res, R, g, char)
+    rng = init_rng()
+    check_multiplication(A, res, R, g, char, rng)
     res = nothing
     gc()
     print_info && print_matrix_info(A, prym_green_size)
-    @time S = recurrence_sequence(A, prym_green_size, g, char)
-    print_info && println(map(x -> Int(x), S[1:10]))
+    @time S = recurrence_sequence(A, prym_green_size, g, char, rng)
+    print_info && println("S[1:4]   = ", map(x -> Int(x), S[1:4]))
     nothing
 end
 

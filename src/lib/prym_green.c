@@ -89,10 +89,7 @@ static void multiply_koszul_row(entry_t **v_a_iter, entry_t **A_iter,
     *v_a_iter += v_shift(n_hblocks, v, f, B);
 }
 
-/*
- * let v_a = P * v_b where P is the Prym-Green matrix represented by A
- */
-static void multiply_matrix(entry_t *v_a, entry_t *A, entry_t* v_b,
+static void multiply_matrix_loop(entry_t *v_a, entry_t *A, entry_t* v_b,
         int *hblocks, int n_hblocks, int g, entry_t c, int **B)
 {
     entry_t **v_a_iter = (entry_t **)malloc(sizeof(entry_t *));
@@ -113,6 +110,24 @@ static void multiply_matrix(entry_t *v_a, entry_t *A, entry_t* v_b,
     free(A_iter);
 }
 
+/*
+ * let v_a = P * v_b where P is the Prym-Green matrix represented by A
+ */
+msize_t multiply_matrix(entry_t **v_a, entry_t *A, entry_t* v_b, int g,
+        entry_t c)
+{
+    int **B = init_binomial_coeffs(g);
+    int **hblocks_ptr = (int **)malloc(sizeof(int *));
+    int n_hblocks = init_horizontal_blocks(hblocks_ptr, g);
+    msize_t size = prym_green_size(g, B);
+    *v_a = (entry_t *)calloc(size, sizeof(entry_t));
+    multiply_matrix_loop(*v_a, A, v_b, *hblocks_ptr, n_hblocks, g, c, B);
+    clear_horizontal_blocks(hblocks_ptr);
+    free(hblocks_ptr);
+    clear_binomial_coeffs(B);
+    return size;
+}
+
 msize_t recurrence_sequence(ulong **seq, entry_t *A, nvals_t n_values,
         entry_t *v, msize_t prym_green_size, msize_t index, int g, entry_t c)
 {
@@ -129,7 +144,7 @@ msize_t recurrence_sequence(ulong **seq, entry_t *A, nvals_t n_values,
     (*seq)[0] = v[index];
     for (msize_t i = 1; i < length; i++) {
         memset(v_a, 0, size_v);
-        multiply_matrix(v_a, A, v_b, *hblocks_ptr, n_hblocks, g, c, B);
+        multiply_matrix_loop(v_a, A, v_b, *hblocks_ptr, n_hblocks, g, c, B);
         (*seq)[i] = v_a[index];
         memcpy(v_b, v_a, size_v);
     }

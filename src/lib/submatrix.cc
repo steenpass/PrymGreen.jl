@@ -250,3 +250,43 @@ nvals_t check_matrix(entry_t **values_ptr, resolvente res, int g, msize_t size,
     rChangeCurrRing(R_orig);
     return n_values;
 }
+
+/*
+ * debug functions
+ */
+
+msize_t dense_matrix(ulong **M, resolvente res, int g, msize_t size,
+        msize_t limit, ring R)
+{
+    const ring R_orig = currRing;
+    rChangeCurrRing(R);
+    poly *columns = (poly *)malloc(size*sizeof(poly));
+    int index = g/2-3;
+    for (msize_t i = 0; i < size; i++) {
+        columns[i] = res[index]->m[i];
+        while (columns[i] != NULL && (msize_t)pGetComp(columns[i]) <= limit) {
+            pIter(columns[i]);
+        }
+    }
+    *M = (ulong *)calloc(size*size, sizeof(ulong));
+    for (msize_t i = 1; i < size; i++) {
+        M[i] = M[i-1]+size;
+    }
+    for (msize_t i = 0; i < size; i++) {
+        while (columns[i] != NULL) {
+            msize_t comp = (msize_t)pGetComp(columns[i]);
+            if (comp <= limit || comp > limit+size) {
+                fprintf(stderr, "error: wrong component\n");
+                free(columns);
+                rChangeCurrRing(R_orig);
+                return 0;   // error
+            }
+            // julia arrays are stored in column-major order
+            M[i][comp-limit-1] = (ulong)(long)pGetCoeff(columns[i]);
+            pIter(columns[i]);
+        }
+    }
+    free(columns);
+    rChangeCurrRing(R_orig);
+    return size;
+}
