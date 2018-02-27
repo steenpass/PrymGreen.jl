@@ -128,7 +128,7 @@ msize_t multiply_matrix(entry_t **v_a, entry_t *A, entry_t* v_b, int g,
     return size;
 }
 
-msize_t recurrence_sequence(ulong **seq, entry_t *A, nvals_t n_values,
+msize_t recurrence_sequence(arith_t **seq, entry_t *A, nvals_t n_values,
         entry_t *v, msize_t prym_green_size, msize_t index, int g, entry_t c)
 {
     int **B = init_binomial_coeffs(g);
@@ -140,7 +140,7 @@ msize_t recurrence_sequence(ulong **seq, entry_t *A, nvals_t n_values,
     memcpy(v_b, v, size_v);
     msize_t length = 2*prym_green_size;
     // this memory block will be handed over to the calling function:
-    *seq = (ulong *)malloc(length*sizeof(ulong));
+    *seq = (arith_t *)malloc(length*sizeof(arith_t));
     (*seq)[0] = v[index];
     for (msize_t i = 1; i < length; i++) {
         memset(v_a, 0, size_v);

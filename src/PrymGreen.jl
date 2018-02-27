@@ -13,6 +13,7 @@ cxxinclude(joinpath("submatrix.h"), isAngled = false)
 global const Msize_t = typeof(icxx"""(msize_t)0;""")
 global const Nvals_t = typeof(icxx"""(nvals_t)0;""")
 global const Entry_t = typeof(icxx"""(entry_t)0;""")
+global const Arith_t = typeof(icxx"""(arith_t)0;""")
 
 function __init__()
     ldir = joinpath(pkgdir, "local", "lib")
@@ -186,14 +187,14 @@ function recurrence_sequence(A::Array{Entry_t, 1}, prym_green_size::Msize_t,
         g::Int, char::Entry_t, rng::AbstractRNG)
     v = Array{Entry_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
     index = Msize_t(rand(rng, 0:(prym_green_size-1)))
-    seq_ptr = ccall((:malloc, "libc"), Ptr{Ptr{UInt64}}, (Csize_t, ),
-            sizeof(Ptr{UInt64}))
+    seq_ptr = ccall((:malloc, "libc"), Ptr{Ptr{Arith_t}}, (Csize_t, ),
+            sizeof(Ptr{Arith_t}))
     length_seq = ccall((:recurrence_sequence, "libprymgreen"), Msize_t,
-            (Ptr{Ptr{UInt64}}, Ptr{Entry_t}, Nvals_t, Ptr{Entry_t}, Msize_t,
+            (Ptr{Ptr{Arith_t}}, Ptr{Entry_t}, Nvals_t, Ptr{Entry_t}, Msize_t,
                 Msize_t, Int, Entry_t),
             seq_ptr, A, size(A, 1), v, prym_green_size, index, g, char)
     seq = unsafe_wrap(Array, unsafe_load(seq_ptr), (length_seq, ), true)
-    ccall((:free, "libc"), Void, (Ptr{Ptr{UInt64}}, ), seq_ptr)
+    ccall((:free, "libc"), Void, (Ptr{Ptr{Arith_t}}, ), seq_ptr)
     seq
 end
 
