@@ -10,9 +10,8 @@
 
 #pragma GCC diagnostic pop
 
-#include "binomial_coeffs.h"
-
 #include "prym_green_types.h"
+#include "binomial_coeffs.h"
 
 nvals_t check_matrix(entry_t **values_ptr, resolvente res, int g, msize_t size,
         msize_t limit, entry_t c, ring R);

@@ -3,16 +3,10 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <flint/flint.h>
 #include <flint/ulong_extras.h>
 
-#include "binomial_coeffs.h"
-
 #include "prym_green_types.h"
-
-#if FLINT_BITS != 64
-#error "not implemented for FLINT_BITS != 64"
-#endif
+#include "binomial_coeffs.h"
 
 msize_t recurrence_sequence(ulong **seq, entry_t *A, nvals_t n_values,
         entry_t* v, msize_t prym_green_size, msize_t index, int g, entry_t c);
