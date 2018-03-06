@@ -140,15 +140,15 @@ function init_rng()
     MersenneTwister(seed)
 end
 
-function multiply_matrix(A::Array{Entry_t, 1}, v::Array{Entry_t, 1}, g::Int,
+function multiply_matrix(A::Array{Arith_t, 1}, v::Array{Arith_t, 1}, g::Int,
         char::Entry_t)
-    Axv_ptr = ccall((:malloc, "libc"), Ptr{Ptr{Entry_t}}, (Csize_t, ),
-            sizeof(Ptr{Entry_t}))
+    Axv_ptr = ccall((:malloc, "libc"), Ptr{Ptr{Arith_t}}, (Csize_t, ),
+            sizeof(Ptr{Arith_t}))
     length_Axv = ccall((:multiply_matrix, "libprymgreen"), Msize_t,
-            (Ptr{Ptr{Entry_t}}, Ptr{Entry_t}, Ptr{Entry_t}, Int, Entry_t),
+            (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Ptr{Arith_t}, Int, Entry_t),
             Axv_ptr, A, v, g, char)
     Axv = unsafe_wrap(Array, unsafe_load(Axv_ptr), (length_Axv, ), true)
-    ccall((:free, "libc"), Void, (Ptr{Ptr{Entry_t}}, ), Axv_ptr)
+    ccall((:free, "libc"), Void, (Ptr{Ptr{Arith_t}}, ), Axv_ptr)
     Axv
 end
 
@@ -170,7 +170,8 @@ function check_multiplication(A::Array{Entry_t, 1}, res::Singular.sresolution,
         R::Singular.PolyRing, g::Int, char::Entry_t, rng::AbstractRNG)
     g > 18 && return
     prym_green_size, limit = betti_table_entries(res, g)
-    v = Array{Entry_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
+    A = Array{Arith_t, 1}(A)
+    v = Array{Arith_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
     Axv = multiply_matrix(A, v, g, char)
     A_dense = dense_matrix(res, R, g, prym_green_size, limit)
     println("mlt. test: ", Axv == A_dense*v .% char ? "passed" : "failed")
@@ -185,12 +186,13 @@ end
 
 function recurrence_sequence(A::Array{Entry_t, 1}, prym_green_size::Msize_t,
         g::Int, char::Entry_t, rng::AbstractRNG)
-    v = Array{Entry_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
+    A = Array{Arith_t, 1}(A)
+    v = Array{Arith_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
     index = Msize_t(rand(rng, 0:(prym_green_size-1)))
     seq_ptr = ccall((:malloc, "libc"), Ptr{Ptr{Arith_t}}, (Csize_t, ),
             sizeof(Ptr{Arith_t}))
     length_seq = ccall((:recurrence_sequence, "libprymgreen"), Msize_t,
-            (Ptr{Ptr{Arith_t}}, Ptr{Entry_t}, Nvals_t, Ptr{Entry_t}, Msize_t,
+            (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Nvals_t, Ptr{Arith_t}, Msize_t,
                 Msize_t, Int, Entry_t),
             seq_ptr, A, size(A, 1), v, prym_green_size, index, g, char)
     seq = unsafe_wrap(Array, unsafe_load(seq_ptr), (length_seq, ), true)

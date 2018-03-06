@@ -1,23 +1,20 @@
 #include "prym_green.h"
 
-static void add_product(entry_t *v_a, entry_t *A, entry_t *v_b, int sign,
+static void add_product(arith_t *v_a, arith_t *A, arith_t *v_b, int sign,
         entry_t c)
 {
-    ulong u_a = *v_a;
-    ulong u_A = *A;
-    ulong u_b = *v_b;
-    ulong u_c = c;
-    ulong inv = n_preinvert_limb(u_c);
-    ulong res = n_mulmod2_preinv(u_A, u_b, u_c, inv);
+    arith_t a_c = (arith_t)c;
+    arith_t inv = n_preinvert_limb(a_c);
+    arith_t res = n_mulmod2_preinv(*A, *v_b, a_c, inv);
     if (sign == -1) {
-        res = u_c-res;
+        res = a_c-res;
     }
-    res = n_addmod(u_a, res, u_c);
-    *v_a = (entry_t)res;
+    res = n_addmod(*v_a, res, a_c);
+    *v_a = res;
 }
 
-static void f_multiply(int h, int v, int sign, entry_t *v_a, entry_t *A,
-        entry_t *v_b, entry_t c, int **B)
+static void f_multiply(int h, int v, int sign, arith_t *v_a, arith_t *A,
+        arith_t *v_b, entry_t c, int **B)
 {
     int size = h_shift(h, v, 1, B);   // == v_shift(h, v, 1, B)
     for (int i = 0; i < size; i++) {
@@ -25,8 +22,8 @@ static void f_multiply(int h, int v, int sign, entry_t *v_a, entry_t *A,
     }
 }
 
-static void h_multiply(int v, int f, int sign, entry_t *v_a, entry_t *A,
-        entry_t *v_b, entry_t c, int **B)
+static void h_multiply(int v, int f, int sign, arith_t *v_a, arith_t *A,
+        arith_t *v_b, entry_t c, int **B)
 {
     int size = v_shift(1, v, f, B);
     for (int i = 0; i < size; i++) {
@@ -35,8 +32,8 @@ static void h_multiply(int v, int f, int sign, entry_t *v_a, entry_t *A,
     }
 }
 
-static void v_multiply(int h, int f, int sign, entry_t *v_a, entry_t *A,
-        entry_t *v_b, entry_t c, int **B)
+static void v_multiply(int h, int f, int sign, arith_t *v_a, arith_t *A,
+        arith_t *v_b, entry_t c, int **B)
 {
     int size = h_shift(h, 1, f, B);
     for (int i = 0; i < size; i++) {
@@ -44,8 +41,8 @@ static void v_multiply(int h, int f, int sign, entry_t *v_a, entry_t *A,
     }
 }
 
-static void multiply_koszul_block(int h, int v, int f, int sign, entry_t *v_a,
-        entry_t *A, entry_t *v_b, entry_t c, int **B)
+static void multiply_koszul_block(int h, int v, int f, int sign, arith_t *v_a,
+        arith_t *A, arith_t *v_b, entry_t c, int **B)
 {
     if (h < 1 || v < 1 || f < 1) {
         return;
@@ -59,19 +56,19 @@ static void multiply_koszul_block(int h, int v, int f, int sign, entry_t *v_a,
     }   // else:
     multiply_koszul_block(h-1, v, f, sign, v_a, A, v_b, c, B);
     v_b += h_shift(h-1, v, f, B);
-    entry_t *f_A = &A[binom(h+v+f-4, f-1, B)];
+    arith_t *f_A = &A[binom(h+v+f-4, f-1, B)];
     multiply_koszul_block(h, v, f-1, sign, v_a, f_A, v_b, c, B);
     v_a += v_shift(h, v, f-1, B);
     sign *= (f%2)*2-1;
     multiply_koszul_block(h, v-1, f, sign, v_a, A, v_b, c, B);
 }
 
-static void multiply_koszul_row(entry_t **v_a_iter, entry_t **A_iter,
-        entry_t *v_b, int *hblocks, int n_hblocks, int g, int f, entry_t c,
+static void multiply_koszul_row(arith_t **v_a_iter, arith_t **A_iter,
+        arith_t *v_b, int *hblocks, int n_hblocks, int g, int f, entry_t c,
         int **B)
 {
     int v = g/2-f-1;
-    entry_t *v_a = *v_a_iter;
+    arith_t *v_a = *v_a_iter;
     for (int i = 0; i < n_hblocks; i++) {
         for (int j = 0; j < hblocks[i]; j++) {
             multiply_koszul_block(i+1, v, f, 1, v_a, *A_iter, v_b, c, B);
@@ -89,12 +86,12 @@ static void multiply_koszul_row(entry_t **v_a_iter, entry_t **A_iter,
     *v_a_iter += v_shift(n_hblocks, v, f, B);
 }
 
-static void multiply_matrix_loop(entry_t *v_a, entry_t *A, entry_t* v_b,
+static void multiply_matrix_loop(arith_t *v_a, arith_t *A, arith_t* v_b,
         int *hblocks, int n_hblocks, int g, entry_t c, int **B)
 {
-    entry_t **v_a_iter = (entry_t **)malloc(sizeof(entry_t *));
+    arith_t **v_a_iter = (arith_t **)malloc(sizeof(arith_t *));
     *v_a_iter = v_a;
-    entry_t **A_iter = (entry_t **)malloc(sizeof(entry_t *));
+    arith_t **A_iter = (arith_t **)malloc(sizeof(arith_t *));
     *A_iter = A;
     for (int k = 0; k < 3; k++) {
         multiply_koszul_row(v_a_iter, A_iter, v_b, hblocks, n_hblocks, g, 2, c,
@@ -113,14 +110,14 @@ static void multiply_matrix_loop(entry_t *v_a, entry_t *A, entry_t* v_b,
 /*
  * let v_a = P * v_b where P is the Prym-Green matrix represented by A
  */
-msize_t multiply_matrix(entry_t **v_a, entry_t *A, entry_t* v_b, int g,
+msize_t multiply_matrix(arith_t **v_a, arith_t *A, arith_t* v_b, int g,
         entry_t c)
 {
     int **B = init_binomial_coeffs(g);
     int **hblocks_ptr = (int **)malloc(sizeof(int *));
     int n_hblocks = init_horizontal_blocks(hblocks_ptr, g);
     msize_t size = prym_green_size(g, B);
-    *v_a = (entry_t *)calloc(size, sizeof(entry_t));
+    *v_a = (arith_t *)calloc(size, sizeof(arith_t));
     multiply_matrix_loop(*v_a, A, v_b, *hblocks_ptr, n_hblocks, g, c, B);
     clear_horizontal_blocks(hblocks_ptr);
     free(hblocks_ptr);
@@ -128,15 +125,15 @@ msize_t multiply_matrix(entry_t **v_a, entry_t *A, entry_t* v_b, int g,
     return size;
 }
 
-msize_t recurrence_sequence(arith_t **seq, entry_t *A, nvals_t n_values,
-        entry_t *v, msize_t prym_green_size, msize_t index, int g, entry_t c)
+msize_t recurrence_sequence(arith_t **seq, arith_t *A, nvals_t n_values,
+        arith_t *v, msize_t prym_green_size, msize_t index, int g, entry_t c)
 {
     int **B = init_binomial_coeffs(g);
     int **hblocks_ptr = (int **)malloc(sizeof(int *));
     int n_hblocks = init_horizontal_blocks(hblocks_ptr, g);
-    size_t size_v = prym_green_size*sizeof(entry_t);
-    entry_t *v_a = (entry_t *)malloc(size_v);
-    entry_t *v_b = (entry_t *)malloc(size_v);
+    size_t size_v = prym_green_size*sizeof(arith_t);
+    arith_t *v_a = (arith_t *)malloc(size_v);
+    arith_t *v_b = (arith_t *)malloc(size_v);
     memcpy(v_b, v, size_v);
     msize_t length = 2*prym_green_size;
     // this memory block will be handed over to the calling function:
