@@ -8,8 +8,10 @@
 #include "prym_green_types.h"
 #include "binomial_coeffs.h"
 
+msize_t multiply_matrix(arith_t **v_a, arith_t *A, arith_t* v_b, int g,
+        arith_t c);
 msize_t recurrence_sequence(arith_t **seq, arith_t *A, nvals_t n_values,
-        arith_t* v, msize_t prym_green_size, msize_t index, int g, entry_t c);
+        arith_t* v, msize_t prym_green_size, msize_t index, int g, arith_t c);
 ulong mult_preinv_itest(ulong a, ulong b, ulong n, long N);
 
 #endif   // PRYM_GREEN_H

@@ -142,10 +142,11 @@ end
 
 function multiply_matrix(A::Array{Arith_t, 1}, v::Array{Arith_t, 1}, g::Int,
         char::Entry_t)
+    char = Arith_t(char)
     Axv_ptr = ccall((:malloc, "libc"), Ptr{Ptr{Arith_t}}, (Csize_t, ),
             sizeof(Ptr{Arith_t}))
     length_Axv = ccall((:multiply_matrix, "libprymgreen"), Msize_t,
-            (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Ptr{Arith_t}, Int, Entry_t),
+            (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Ptr{Arith_t}, Int, Arith_t),
             Axv_ptr, A, v, g, char)
     Axv = unsafe_wrap(Array, unsafe_load(Axv_ptr), (length_Axv, ), true)
     ccall((:free, "libc"), Void, (Ptr{Ptr{Arith_t}}, ), Axv_ptr)
@@ -187,13 +188,14 @@ end
 function recurrence_sequence(A::Array{Entry_t, 1}, prym_green_size::Msize_t,
         g::Int, char::Entry_t, rng::AbstractRNG)
     A = Array{Arith_t, 1}(A)
+    char = Arith_t(char)
     v = Array{Arith_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
     index = Msize_t(rand(rng, 0:(prym_green_size-1)))
     seq_ptr = ccall((:malloc, "libc"), Ptr{Ptr{Arith_t}}, (Csize_t, ),
             sizeof(Ptr{Arith_t}))
     length_seq = ccall((:recurrence_sequence, "libprymgreen"), Msize_t,
             (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Nvals_t, Ptr{Arith_t}, Msize_t,
-                Msize_t, Int, Entry_t),
+                Msize_t, Int, Arith_t),
             seq_ptr, A, size(A, 1), v, prym_green_size, index, g, char)
     seq = unsafe_wrap(Array, unsafe_load(seq_ptr), (length_seq, ), true)
     ccall((:free, "libc"), Void, (Ptr{Ptr{Arith_t}}, ), seq_ptr)
