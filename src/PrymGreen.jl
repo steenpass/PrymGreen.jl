@@ -175,7 +175,12 @@ function check_multiplication(A::Array{Entry_t, 1}, res::Singular.sresolution,
     v = Array{Arith_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
     Axv = multiply_matrix(A, v, g, char)
     A_dense = dense_matrix(res, R, g, prym_green_size, limit)
-    println("mlt. test: ", Axv == A_dense*v .% char ? "passed" : "failed")
+    print("mlt. test: ")
+    if Axv == A_dense*v .% char
+        print_with_color(:green, "passed\n")
+    else
+        print_with_color(:red, "failed\n"; bold = true)
+    end
 end
 
 function print_matrix_info(A::Array{Entry_t, 1}, prym_green_size::Msize_t)
