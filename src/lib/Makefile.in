@@ -1,4 +1,4 @@
-SOURCES_C=binomial_coeffs.c prym_green.c
+SOURCES_C=berlekamp_massey.c binomial_coeffs.c prym_green.c
 SOURCES_CXX=submatrix.cc
 HEADERS=prym_green_types.h
 HEADERS+=$(SOURCES_C:.c=.h) $(SOURCES_CXX:.cc=.h)
@@ -12,6 +12,10 @@ LINKING_OPTIONS=-Wl,-rpath,$(FLINT_DIR)/lib,-rpath,$(SINGULAR_DIR)/lib
 LINKING_OPTIONS+=-L$(FLINT_DIR)/lib -L$(SINGULAR_DIR)/lib -lflint
 
 all: $(LIBNAME)
+
+berlekamp_massey.o: berlekamp_massey.c
+	@echo "  CC      $@"
+	$(Q)$(CC) -c $(CFLAGS) -o$@ $<
 
 binomial_coeffs.o: binomial_coeffs.c
 	@echo "  CC      $@"
@@ -32,15 +36,14 @@ $(LIBNAME): $(OBJECTS)
 install: $(LIBNAME)
 	$(Q)mkdir -p $(PREFIX)/include
 	$(Q)mkdir -p $(PREFIX)/lib
-	@echo "  CP      $(HEADERS)"
+	@echo "  CP      *.h"
 	$(Q)cp $(HEADERS) $(PREFIX)/include
 	@echo "  CP      $(LIBNAME)"
 	$(Q)cp $(LIBNAME) $(PREFIX)/lib
 
 clean:
-	@echo "  RM      $(OBJECTS)"
+	@echo "  RM      *.o *.so"
 	$(Q)rm -f $(OBJECTS)
-	@echo "  RM      $(LIBNAME)"
 	$(Q)rm -f $(LIBNAME)
 
 .PHONY: clean
