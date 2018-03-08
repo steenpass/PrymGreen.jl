@@ -208,11 +208,12 @@ function recurrence_sequence(A::Array{Entry_t, 1}, prym_green_size::Msize_t,
 end
 
 function berlekamp_massey(S::Array{Arith_t, 1}, char::Entry_t)
+    char = Arith_t(char)
     lfsr_ptr = ccall((:malloc, "libc"), Ptr{Ptr{Arith_t}}, (Csize_t, ),
             sizeof(Ptr{Arith_t}))
     length_lfsr = ccall((:berlekamp_massey, "libprymgreen"), Msize_t,
-            (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Msize_t),
-            lfsr_ptr, S, size(S, 1))
+            (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Msize_t, Arith_t),
+            lfsr_ptr, S, size(S, 1), char)
     lfsr = unsafe_wrap(Array, unsafe_load(lfsr_ptr), (length_lfsr, ), true)
     ccall((:free, "libc"), Void, (Ptr{Ptr{Arith_t}}, ), lfsr_ptr)
     lfsr
