@@ -1,6 +1,6 @@
 using Cxx
-using Nemo
-using Singular
+import Nemo
+import Singular
 
 #=
 modified copy from Singular.jl (commit b277b7c) to make use_cache and

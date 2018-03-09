@@ -1,3 +1,5 @@
+info("Building PrymGreen")
+
 pkg_dir = Pkg.dir("PrymGreen")
 lib_dir = joinpath(pkg_dir, "src", "lib")
 local_dir = joinpath(pkg_dir, "local")

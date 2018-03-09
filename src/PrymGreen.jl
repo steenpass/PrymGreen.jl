@@ -1,20 +1,20 @@
 module PrymGreen
 
-using LightXML
 using Cxx
+import LightXML
 
 stdout = STDOUT
 redirect_stdout(open("/dev/null", "w"))
-using Singular
-
 import Hecke
+import Nemo
+import Singular
 redirect_stdout(stdout)
 
 export run_example, check_prym_green_conjecture
 
 const pkgdir = Pkg.dir("PrymGreen")   # to be replaced with @__MODULE__
-addHeaderDir(joinpath(pkgdir, "local", "include"), kind = C_User)
-cxxinclude(joinpath("submatrix.h"), isAngled = false)
+Cxx.addHeaderDir(joinpath(pkgdir, "local", "include"), kind = Cxx.C_User)
+Cxx.cxxinclude(joinpath("submatrix.h"), isAngled = false)
 
 global const Msize_t = typeof(icxx"""(msize_t)0;""")
 global const Nvals_t = typeof(icxx"""(nvals_t)0;""")
@@ -252,11 +252,11 @@ function run_example(filename::String; print_info::Bool = false)
     @time res = PrymGreen.fres(I, div(g, 2)-2, "single module";
             use_cache = false, use_tensor_trick = true)
     @time A, prym_green_size = submatrix(res, R, g, char)
+    print_info && print_matrix_info(A, prym_green_size)
     rng = init_rng()
     check_multiplication(A, res, R, g, char, rng)
     res = nothing
     gc()
-    print_info && print_matrix_info(A, prym_green_size)
     @time S = recurrence_sequence(A, prym_green_size, g, char, rng)
     print_info && println("S[1:4]   = ", map(x -> Int(x), S[1:4]))
     @time C = PrymGreen.berlekamp_massey(S, char)
