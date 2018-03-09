@@ -4,6 +4,8 @@ using LightXML
 using Cxx
 using Singular
 
+import Hecke
+
 export run_example, check_prym_green_conjecture
 
 const pkgdir = Pkg.dir("PrymGreen")   # to be replaced with @__MODULE__
@@ -219,6 +221,20 @@ function berlekamp_massey(S::Array{Arith_t, 1}, char::Entry_t)
     lfsr
 end
 
+function check_berlekamp_massey(C::Array{Arith_t, 1}, S::Array{Arith_t, 1},
+        char::Entry_t)
+    R = Nemo.NmodRing(UInt64(char))
+    Sp = [ R(i) for i in S ]
+    f = Hecke.berlekamp_massey(Sp)
+    C_check = [ Arith_t(Nemo.coeff(f, i).data) for i in Nemo.degree(f):-1:0 ]
+    print("B-M. test: ")
+    if C == C_check
+        print_with_color(:green, "passed\n")
+    else
+        print_with_color(:red, "failed\n"; bold = true)
+    end
+end
+
 function run_example(filename::String; print_info::Bool = false)
     R, I, key = load_example(filename)
     print_info && println(key)
@@ -239,8 +255,9 @@ function run_example(filename::String; print_info::Bool = false)
     print_info && print_matrix_info(A, prym_green_size)
     @time S = recurrence_sequence(A, prym_green_size, g, char, rng)
     print_info && println("S[1:4]   = ", map(x -> Int(x), S[1:4]))
-    @time C = berlekamp_massey(S, char)
+    @time C = PrymGreen.berlekamp_massey(S, char)
     print_info && println("C[1:4]   = ", map(x -> Int(x), C[1:4]))
+    check_berlekamp_massey(C, S, char)
     nothing
 end
 
