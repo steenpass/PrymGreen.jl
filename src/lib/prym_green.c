@@ -4,7 +4,7 @@ static void add_product(arith_t *v_a, arith_t *A, arith_t *v_b, int sign,
         arith_t c, arith_t inv)
 {
     arith_t res = n_mulmod2_preinv(*A, *v_b, c, inv);
-    if (sign == -1) {
+    if (sign == -1 && res != 0) {
         res = c-res;
     }
     *v_a = n_addmod(*v_a, res, c);
