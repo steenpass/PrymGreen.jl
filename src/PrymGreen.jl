@@ -2,9 +2,13 @@ module PrymGreen
 
 using LightXML
 using Cxx
+
+stdout = STDOUT
+redirect_stdout(open("/dev/null", "w"))
 using Singular
 
 import Hecke
+redirect_stdout(stdout)
 
 export run_example, check_prym_green_conjecture
 
