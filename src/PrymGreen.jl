@@ -173,6 +173,19 @@ function dense_matrix(res::Singular.sresolution, R::Singular.PolyRing, g::Int,
     A_dense
 end
 
+function write_dense_matrix(A_dense::Array{Entry_t, 2}, g::Int, char::Entry_t)
+    file = "pcnc_g"*string(g)*"_submatrix_"*string(size(A_dense, 1))
+    if isfile(file)
+        rm(file)
+    end
+    f = open(file, "a")
+    write(f, string(char)*"\n")
+    write(f, string(size(A_dense, 1))*" "*string(size(A_dense, 2))*"\n")
+    A_print = Array{Int, 2}(A_dense)
+    writedlm(f, A_print, ' ')
+    close(f)
+end
+
 function check_multiplication(A::Array{Entry_t, 1}, res::Singular.sresolution,
         R::Singular.PolyRing, g::Int, char::Entry_t, rng::AbstractRNG)
     g > 18 && return
@@ -181,6 +194,7 @@ function check_multiplication(A::Array{Entry_t, 1}, res::Singular.sresolution,
     v = Array{Arith_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
     Axv = multiply_matrix(A, v, g, char)
     A_dense = dense_matrix(res, R, g, prym_green_size, limit)
+    # write_dense_matrix(A_dense, g, char)
     print("mlt. test: ")
     if Axv == A_dense*v .% char
         print_with_color(:green, "passed\n")
