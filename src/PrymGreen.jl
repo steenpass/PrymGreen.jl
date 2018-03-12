@@ -186,6 +186,13 @@ function write_dense_matrix(A_dense::Array{Entry_t, 2}, g::Int, char::Entry_t)
     close(f)
 end
 
+function gauss(A_dense::Array{Entry_t, 2}, char::Entry_t)
+    @time rank = ccall((:gauss, "libprymgreen"), Msize_t,
+            (Ptr{Entry_t}, Msize_t, Msize_t, Entry_t),
+            A_dense, size(A_dense, 1), size(A_dense, 2), char)
+    println("rank:      ", rank)
+end
+
 function check_multiplication(A::Array{Entry_t, 1}, res::Singular.sresolution,
         R::Singular.PolyRing, g::Int, char::Entry_t, rng::AbstractRNG)
     g > 18 && return
@@ -194,6 +201,7 @@ function check_multiplication(A::Array{Entry_t, 1}, res::Singular.sresolution,
     v = Array{Arith_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
     Axv = multiply_matrix(A, v, g, char)
     A_dense = dense_matrix(res, R, g, prym_green_size, limit)
+    # gauss(A_dense, char)
     # write_dense_matrix(A_dense, g, char)
     print("mlt. test: ")
     if Axv == A_dense*v .% char
