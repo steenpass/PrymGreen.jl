@@ -28,6 +28,7 @@ function __init__()
 end
 
 include("singular_tools.jl")
+include("generate_random_pcnc.jl")
 
 function read_xml_file(filename::String)
     file = open(filename)
