@@ -1,14 +1,17 @@
 #=
-Compute the multiplicative order of z 
+Check that n is the multiplicative order of z, given that z^n = 1.
 =#
-function multiplicative_order(z::Nemo.nmod, n::Int)
-    a = z
-    ord = 1
-    while a != 1
-        a = a*z
-        ord = ord+1
+function has_multiplicative_order(z::Nemo.nmod, n::Int)
+    if z == 1 && n > 1
+        return false
     end
-    ord
+    fac = Nemo.factor(Nemo.FlintZZ(n))
+    for (p, e) in fac
+        if z^div(n, Int(p)) == 1
+            return false
+        end
+    end
+    return true
 end
 
 #=
@@ -39,7 +42,7 @@ function random_primitive_root_of_unity(a::Entry_t, b::Entry_t, n::Int,
     end
     R = Nemo.ResidueRing(Nemo.FlintZZ, p)
     z = R(rand(rng, 1:(p-1)))^k
-    while multiplicative_order(z, n) != n
+    while !has_multiplicative_order(z, n)
         z = R(rand(rng, 1:(p-1)))^k
     end
     (Entry_t(p), Entry_t(z.data))
