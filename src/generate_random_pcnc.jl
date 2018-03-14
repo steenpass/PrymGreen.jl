@@ -18,7 +18,7 @@ n-th root of unity z in Z/pZ.
 =#
 function random_primitive_root_of_unity(a::Entry_t, b::Entry_t, n::Int,
         rng::AbstractRNG)
-    n > 0 && error("n must be positive")
+    n > 0 || error("n must be positive")
     from = div(a+n-2, n)   # = ceil((a-1)/n)
     to = div(b-1, n)   # = floor((b-1)/n)
     interval = from:to
@@ -30,7 +30,7 @@ function random_primitive_root_of_unity(a::Entry_t, b::Entry_t, n::Int,
             break
         end
     end
-    contains_prime && error("interval to small")
+    contains_prime || error("interval to small")
     k = rand(rng, interval)
     p = n*k+1
     while !Nemo.isprime(Nemo.fmpz(p))
