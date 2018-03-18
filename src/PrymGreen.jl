@@ -3,12 +3,17 @@ module PrymGreen
 using Cxx
 import LightXML
 
+info("Loading Nemo, Hecke, and Singular.")
+info("STDOUT and STDERR redirected to /dev/null.")
 stdout = STDOUT
+stderr = STDERR
 redirect_stdout(open("/dev/null", "w"))
+redirect_stderr(open("/dev/null", "w"))
 import Hecke
 import Nemo
 import Singular
 redirect_stdout(stdout)
+redirect_stderr(stderr)
 
 export run_example, check_prym_green_conjecture
 
