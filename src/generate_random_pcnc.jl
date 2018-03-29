@@ -16,12 +16,11 @@ end
 
 #=
 Choose a uniformly random prime p from the interval [a, b] such that there
-exists a primitive n-th root of unity in Z/pZ and choose a uniformly random
-n-th root of unity z in Z/pZ.
+exists a primitive n-th root of unity in Z/pZ, that is, such that n divides
+p-1.
 =#
-function random_primitive_root_of_unity(a::Entry_t, b::Entry_t, n::Int,
+function random_prime_with_primitive_root_of_unity(a::Int, b::Int, n::Int,
         rng::AbstractRNG)
-    n > 0 || error("n must be positive")
     from = div(a+n-2, n)   # = ceil((a-1)/n)
     to = div(b-1, n)   # = floor((b-1)/n)
     interval = from:to
@@ -40,10 +39,23 @@ function random_primitive_root_of_unity(a::Entry_t, b::Entry_t, n::Int,
         k = rand(rng, interval)
         p = n*k+1
     end
+    p
+end
+
+#=
+Choose a uniformly random prime p from the interval [a, b] such that there
+exists a primitive n-th root of unity in R := Z/pZ and choose a uniformly
+random n-th root of unity z in R. Return (R, z).
+=#
+function random_primitive_root_of_unity(a::Int, b::Int, n::Int,
+        rng::AbstractRNG)
+    n > 0 || error("n must be positive")
+    p = random_prime_with_primitive_root_of_unity(a, b, n, rng)
+    k = div(p-1, n)
     R = Nemo.ResidueRing(Nemo.FlintZZ, p)
     z = R(rand(rng, 1:(p-1)))^k
     while !has_multiplicative_order(z, n)
         z = R(rand(rng, 1:(p-1)))^k
     end
-    (Entry_t(p), Entry_t(z.data))
+    (R, Entry_t(z.data))
 end
