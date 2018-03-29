@@ -81,6 +81,22 @@ function random_distinct_points_of_P1(R::Nemo.NmodRing, n::Int,
     M
 end
 
+function canonical_multipliers(P::Array{Nemo.nmod, 2}, Q::Array{Nemo.nmod, 2})
+    @assert size(P, 1) == 2
+    @assert size(Q, 1) == 2
+    g = size(P, 2)
+    R = Nemo.parent(P[1])
+    S, (x_0, x_1) = Singular.PolynomialRing(R, ["x_0", "x_1"])
+    zeros_P = [ (P[1, i]*x_1-P[2, i]*x_0) for i in 1:g ]
+    zeros_Q = [ (Q[1, i]*x_1-Q[2, i]*x_0) for i in 1:g ]
+    quadrics = [ zeros_P[i]*zeros_Q[i] for i in 1:g ]
+    sections = [ prod(quadrics[1:g .!= i]) for i in 1:g ]
+    s = poly_substitute(sections[1], [x_0, x_1], S.(P[:, 1]))
+    AP = [ poly_substitute(sections[i], [x_0, x_1], S.(P[:, i])) for i = 1:g ]'
+    AQ = [ poly_substitute(sections[i], [x_0, x_1], S.(Q[:, i])) for i = 1:g ]'
+    return Singular.coeff.(vcat(AP, AQ), 0)
+end
+
 #=
 Compute a random Prym canonical nodal curve of genus g and level l.
 =#
@@ -88,4 +104,5 @@ function random_PCNC(g::Int, l::Int, rng::AbstractRNG)
     (R, z) = random_primitive_root_of_unity(2, 2147483647, l, rng)
     P = random_distinct_points_of_P1(R, g, rng)
     Q = random_distinct_points_of_P1(R, g, rng)
+    A = canonical_multipliers(P, Q)
 end
