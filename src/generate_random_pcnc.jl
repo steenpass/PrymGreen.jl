@@ -91,10 +91,10 @@ function canonical_multipliers(P::Array{Nemo.nmod, 2}, Q::Array{Nemo.nmod, 2})
     zeros_Q = [ (Q[1, i]*x_1-Q[2, i]*x_0) for i in 1:g ]
     quadrics = [ zeros_P[i]*zeros_Q[i] for i in 1:g ]
     sections = [ prod(quadrics[1:g .!= i]) for i in 1:g ]
-    s = poly_substitute(sections[1], [x_0, x_1], S.(P[:, 1]))
     AP = [ poly_substitute(sections[i], [x_0, x_1], S.(P[:, i])) for i = 1:g ]'
     AQ = [ poly_substitute(sections[i], [x_0, x_1], S.(Q[:, i])) for i = 1:g ]'
-    return Singular.coeff.(vcat(AP, AQ), 0)
+    A = Singular.coeff.(vcat(AP, AQ), 0)
+    return (x -> Singular.libSingular.julia(x.ptr)).(A)
 end
 
 #=
