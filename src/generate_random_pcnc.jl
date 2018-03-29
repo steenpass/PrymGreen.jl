@@ -59,3 +59,33 @@ function random_primitive_root_of_unity(a::Int, b::Int, n::Int,
     end
     (R, Entry_t(z.data))
 end
+
+function are_distinct_points_of_P1(M::Array{Nemo.nmod, 2})
+    @assert size(M, 1) == 2
+    for i in 2:size(M, 2)
+        for j in 1:(i-1)
+            if M[1, j]*M[2, i]-M[1, i]*M[2, j] == 0
+                return false
+            end
+        end
+    end
+    return true
+end
+
+function random_distinct_points_of_P1(R::Nemo.NmodRing, n::Int,
+        rng::AbstractRNG)
+    M = R.(rand(rng, 1:R.n, (2, n)))
+    while !are_distinct_points_of_P1(M)
+        M = R.(rand(rng, 1:R.n, (2, n)))
+    end
+    M
+end
+
+#=
+Compute a random Prym canonical nodal curve of genus g and level l.
+=#
+function random_PCNC(g::Int, l::Int, rng::AbstractRNG)
+    (R, z) = random_primitive_root_of_unity(2, 2147483647, l, rng)
+    P = random_distinct_points_of_P1(R, g, rng)
+    Q = random_distinct_points_of_P1(R, g, rng)
+end
