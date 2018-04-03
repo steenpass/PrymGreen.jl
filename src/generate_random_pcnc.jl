@@ -57,7 +57,7 @@ function random_primitive_root_of_unity(a::Int, b::Int, n::Int,
     while !has_multiplicative_order(z, n)
         z = R(rand(rng, 1:(p-1)))^k
     end
-    (R, Entry_t(z.data))
+    (R, z)
 end
 
 function are_distinct_points_of_P1(M::Array{Nemo.nmod, 2})
@@ -97,12 +97,19 @@ function canonical_multipliers(P::Array{Nemo.nmod, 2}, Q::Array{Nemo.nmod, 2})
     return (x -> Singular.libSingular.julia(x.ptr)).(A)
 end
 
+function change_multiplier(A::Array{Nemo.nmod, 2}, r::Nemo.nmod)
+    @assert size(A, 1) == 2
+    A[2, :] .*= r
+    return A
+end
+
 #=
 Compute a random Prym canonical nodal curve of genus g and level l.
 =#
 function random_PCNC(g::Int, l::Int, rng::AbstractRNG)
-    (R, z) = random_primitive_root_of_unity(2, 2147483647, l, rng)
+    (R, r) = random_primitive_root_of_unity(2, 2147483647, l, rng)
     P = random_distinct_points_of_P1(R, g, rng)
     Q = random_distinct_points_of_P1(R, g, rng)
     A = canonical_multipliers(P, Q)
+    A = change_multiplier(A, r)
 end
