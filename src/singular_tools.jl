@@ -89,3 +89,9 @@ function poly_substitute(p::Singular.spoly{T}, X::Array{Singular.spoly{T}, 1},
     end
     return p
 end
+
+function Module{T <: Nemo.RingElem}(A::Array{Singular.spoly{T}, 2})
+    R = Singular.parent(A[1])
+    cols = [ Singular.svector(A[:, i]) for i in 1:size(A, 2) ]
+    return Singular.Module(R, cols...)
+end

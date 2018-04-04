@@ -103,6 +103,21 @@ function change_multiplier(A::Array{Nemo.nmod, 2}, r::Nemo.nmod)
     return A
 end
 
+function linear_series_from_multipliers(P::Array{Nemo.nmod, 2},
+        Q::Array{Nemo.nmod, 2}, A::Array{Nemo.nmod, 2})
+    R = Nemo.parent(P[1])
+    S, X = Singular.PolynomialRing(R, ["x_0", "x_1"])
+    g = size(P, 2)
+    B = Singular.MaximalIdeal(S, 2*g-2)
+    d = Singular.ngens(B)
+    MP = [ A[2, i]*poly_substitute(B[j], X, S.(P[:, i])) for i = 1:g, j = 1:d ]
+    MQ = [ A[1, i]*poly_substitute(B[j], X, S.(Q[:, i])) for i = 1:g, j = 1:d ]
+    sy = Singular.syz(Module(MP-MQ))
+    l = Singular.ngens(sy)
+    map = [ sum([ B[j] for j = 1:d ] .* Array(sy[i])) for i = 1:l ]
+    return map
+end
+
 #=
 Compute a random Prym canonical nodal curve of genus g and level l.
 =#
@@ -112,4 +127,5 @@ function random_PCNC(g::Int, l::Int, rng::AbstractRNG)
     Q = random_distinct_points_of_P1(R, g, rng)
     A = canonical_multipliers(P, Q)
     A = change_multiplier(A, r)
+    s = linear_series_from_multipliers(P, Q, A)
 end
