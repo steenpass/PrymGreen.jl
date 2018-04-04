@@ -128,4 +128,6 @@ function random_PCNC(g::Int, l::Int, rng::AbstractRNG)
     A = canonical_multipliers(P, Q)
     A = change_multiplier(A, r)
     s = linear_series_from_multipliers(P, Q, A)
+    n = size(s, 1)
+    @assert n == g-1
 end
