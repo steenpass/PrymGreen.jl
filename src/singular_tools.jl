@@ -1,5 +1,5 @@
 using Cxx
-import Nemo
+import AbstractAlgebra
 import Singular
 
 #=
@@ -25,8 +25,8 @@ end
 modified copy from Singular.jl (commit b277b7c) to make use_cache and
 use_tensor_trick available
 =#
-function fres{T <: Nemo.RingElem}(id::Singular.sideal{T}, max_length::Int,
-        method::String = "complete";
+function fres{T <: AbstractAlgebra.RingElem}(id::Singular.sideal{T},
+        max_length::Int, method::String = "complete";
         use_cache::Bool = true, use_tensor_trick::Bool = false)
     id.isGB == false && error("ideal is not a standard basis")
     max_length < 0 && error("length for fres must not be negative")
@@ -90,7 +90,7 @@ function poly_substitute(p::Singular.spoly{T}, X::Array{Singular.spoly{T}, 1},
     return p
 end
 
-function Module{T <: Nemo.RingElem}(A::Array{Singular.spoly{T}, 2})
+function Module{T <: AbstractAlgebra.RingElem}(A::Array{Singular.spoly{T}, 2})
     R = Singular.parent(A[1])
     cols = [ Singular.svector(A[:, i]) for i in 1:size(A, 2) ]
     return Singular.Module(R, cols...)

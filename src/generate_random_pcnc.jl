@@ -1,7 +1,10 @@
+import AbstractAlgebra
+import Nemo
+
 #=
 Check that n is the multiplicative order of z, given that z^n = 1.
 =#
-function has_multiplicative_order(z::Nemo.nmod, n::Int)
+function has_multiplicative_order(z::AbstractAlgebra.RingElem, n::Int)
     if z == 1 && n > 1
         return false
     end
@@ -60,7 +63,8 @@ function random_primitive_root_of_unity(a::Int, b::Int, n::Int,
     (R, z)
 end
 
-function are_distinct_points_of_P1(M::Array{Nemo.nmod, 2})
+function are_distinct_points_of_P1{T <: AbstractAlgebra.RingElem}(
+        M::Array{T, 2})
     @assert size(M, 1) == 2
     for i in 2:size(M, 2)
         for j in 1:(i-1)
@@ -72,20 +76,26 @@ function are_distinct_points_of_P1(M::Array{Nemo.nmod, 2})
     return true
 end
 
-function random_distinct_points_of_P1(R::Nemo.NmodRing, n::Int,
-        rng::AbstractRNG)
-    M = R.(rand(rng, 1:R.n, (2, n)))
-    while !are_distinct_points_of_P1(M)
-        M = R.(rand(rng, 1:R.n, (2, n)))
-    end
-    M
+function random_field_elements(rng::AbstractRNG, R::Nemo.NmodRing, dims::Dims)
+    @assert Nemo.isprime(R.n)
+    return R.(rand(rng, 1:R.n, dims))
 end
 
-function canonical_multipliers(P::Array{Nemo.nmod, 2}, Q::Array{Nemo.nmod, 2})
+function random_distinct_points_of_P1(R::AbstractAlgebra.Ring, n::Int,
+        rng::AbstractRNG)
+    M = random_field_elements(rng, R, (2, n))
+    while !are_distinct_points_of_P1(M)
+        M = random_field_elements(rng, R, (2, n))
+    end
+    return M
+end
+
+function canonical_multipliers{T <: AbstractAlgebra.RingElem}(P::Array{T, 2},
+        Q::Array{T, 2})
     @assert size(P, 1) == 2
     @assert size(Q, 1) == 2
     g = size(P, 2)
-    R = Nemo.parent(P[1])
+    R = AbstractAlgebra.parent(P[1])
     S, (x_0, x_1) = Singular.PolynomialRing(R, ["x_0", "x_1"])
     zeros_P = [ (P[1, i]*x_1-P[2, i]*x_0) for i in 1:g ]
     zeros_Q = [ (Q[1, i]*x_1-Q[2, i]*x_0) for i in 1:g ]
@@ -97,15 +107,15 @@ function canonical_multipliers(P::Array{Nemo.nmod, 2}, Q::Array{Nemo.nmod, 2})
     return (x -> Singular.libSingular.julia(x.ptr)).(A)
 end
 
-function change_multiplier(A::Array{Nemo.nmod, 2}, r::Nemo.nmod)
+function change_multiplier{T <: AbstractAlgebra.RingElem}(A::Array{T, 2}, r::T)
     @assert size(A, 1) == 2
     A[2, :] .*= r
     return A
 end
 
-function linear_series_from_multipliers(P::Array{Nemo.nmod, 2},
-        Q::Array{Nemo.nmod, 2}, A::Array{Nemo.nmod, 2})
-    R = Nemo.parent(P[1])
+function linear_series_from_multipliers{T <: AbstractAlgebra.RingElem}(
+        P::Array{T, 2}, Q::Array{T, 2}, A::Array{T, 2})
+    R = AbstractAlgebra.parent(P[1])
     S, X = Singular.PolynomialRing(R, ["x_0", "x_1"])
     g = size(P, 2)
     B = Singular.MaximalIdeal(S, 2*g-2)
