@@ -92,6 +92,6 @@ end
 
 function Module{T <: AbstractAlgebra.RingElem}(A::Array{Singular.spoly{T}, 2})
     R = Singular.parent(A[1])
-    cols = [ Singular.svector(A[:, i]) for i in 1:size(A, 2) ]
+    cols = [ Singular.vector(R, A[:, i]...) for i in 1:size(A, 2) ]
     return Singular.Module(R, cols...)
 end
