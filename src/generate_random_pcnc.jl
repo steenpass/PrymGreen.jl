@@ -139,7 +139,8 @@ end
 Compute a random Prym canonical nodal curve of genus g and level l.
 =#
 function random_PCNC(g::Int, l::Int, rng::AbstractRNG)
-    (R, r) = random_primitive_root_of_unity(2, 2147483647, l, rng)
+    # 268435399 is the limit for Singular.Fp()
+    (R, r) = random_primitive_root_of_unity(2, 268435399, l, rng)
     P = random_distinct_points_of_P1(R, g, rng)
     Q = random_distinct_points_of_P1(R, g, rng)
     A = canonical_multipliers(P, Q)
