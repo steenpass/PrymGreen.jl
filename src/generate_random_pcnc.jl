@@ -1,5 +1,6 @@
 import AbstractAlgebra
 import Nemo
+import Singular
 
 #=
 Check that n is the multiplicative order of z, given that z^n = 1.
@@ -55,7 +56,8 @@ function random_primitive_root_of_unity(a::Int, b::Int, n::Int,
     n > 0 || error("n must be positive")
     p = random_prime_with_primitive_root_of_unity(a, b, n, rng)
     k = div(p-1, n)
-    R = Nemo.ResidueRing(Nemo.FlintZZ, p)
+    # R = Nemo.ResidueRing(Nemo.FlintZZ, p)
+    R = Singular.Fp(p)
     z = R(rand(rng, 1:(p-1)))^k
     while !has_multiplicative_order(z, n)
         z = R(rand(rng, 1:(p-1)))^k
@@ -79,6 +81,11 @@ end
 function random_field_elements(rng::AbstractRNG, R::Nemo.NmodRing, dims::Dims)
     @assert Nemo.isprime(R.n)
     return R.(rand(rng, 1:R.n, dims))
+end
+
+function random_field_elements(rng::AbstractRNG, R::Singular.N_ZpField,
+        dims::Dims)
+    return R.(rand(rng, 1:Int(Singular.characteristic(R)), dims))
 end
 
 function random_distinct_points_of_P1(R::AbstractAlgebra.Ring, n::Int,

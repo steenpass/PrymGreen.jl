@@ -9,8 +9,8 @@ stdout = STDOUT
 stderr = STDERR
 redirect_stdout(open("/dev/null", "w"))
 redirect_stderr(open("/dev/null", "w"))
-import Hecke
 import Nemo
+import Hecke
 import Singular
 redirect_stdout(stdout)
 redirect_stderr(stderr)
