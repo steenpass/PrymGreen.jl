@@ -104,3 +104,10 @@ function Int(n::Singular.n_Z)
     R = Singular.parent(n)
     return n_Int(n.ptr, R.ptr)
 end
+
+function unwrap(n::AbstractAlgebra.RingElem)
+    if typeof(n) <: Singular.n_unknown
+        return Singular.libSingular.julia(n.ptr)
+    end
+    return n
+end

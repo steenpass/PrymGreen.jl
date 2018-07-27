@@ -111,7 +111,7 @@ function canonical_multipliers{T <: AbstractAlgebra.RingElem}(P::Array{T, 2},
     AP = [ poly_substitute(sections[i], [x_0, x_1], S.(P[:, i])) for i = 1:g ]'
     AQ = [ poly_substitute(sections[i], [x_0, x_1], S.(Q[:, i])) for i = 1:g ]'
     A = Singular.coeff.(vcat(AP, AQ), 0)
-    return (x -> Singular.libSingular.julia(x.ptr)).(A)
+    return unwrap.(A)
 end
 
 function change_multiplier{T <: AbstractAlgebra.RingElem}(A::Array{T, 2}, r::T)
