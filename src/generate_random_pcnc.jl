@@ -149,4 +149,7 @@ function random_PCNC(g::Int, l::Int, rng::AbstractRNG)
     s = linear_series_from_multipliers(P, Q, A)
     n = Singular.ngens(s)
     @assert n == g-1
+    T, = Singular.PolynomialRing(R, [ "t_$i" for i = 0:(n-1) ])
+    K = Singular.kernel(T, s)
+    return K
 end
