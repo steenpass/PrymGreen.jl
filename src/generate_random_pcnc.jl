@@ -131,7 +131,8 @@ function linear_series_from_multipliers{T <: AbstractAlgebra.RingElem}(
     MQ = [ A[1, i]*poly_substitute(B[j], X, S.(Q[:, i])) for i = 1:g, j = 1:d ]
     sy = Singular.syz(Module(MP-MQ))
     l = Singular.ngens(sy)
-    map = [ sum([ B[j] for j = 1:d ] .* Array(sy[i])) for i = 1:l ]
+    gens = [ sum([ B[j] for j = 1:d ] .* Array(sy[i])) for i = 1:l ]
+    map = Singular.Ideal(S, gens)
     return map
 end
 
@@ -146,6 +147,6 @@ function random_PCNC(g::Int, l::Int, rng::AbstractRNG)
     A = canonical_multipliers(P, Q)
     A = change_multiplier(A, r)
     s = linear_series_from_multipliers(P, Q, A)
-    n = size(s, 1)
+    n = Singular.ngens(s)
     @assert n == g-1
 end
