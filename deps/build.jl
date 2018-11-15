@@ -1,10 +1,13 @@
-info("Building PrymGreen")
+@info("Building PrymGreen")
 
-pkg_dir = Pkg.dir("PrymGreen")
+import Nemo
+import Singular
+
+pkg_dir = realpath(joinpath(@__DIR__, ".."))
 lib_dir = joinpath(pkg_dir, "src", "lib")
 local_dir = joinpath(pkg_dir, "local")
-flint_dir = joinpath(Pkg.dir("Nemo"), "local")
-singular_dir = joinpath(Pkg.dir("Singular"), "local")
+flint_dir = realpath(joinpath(dirname(pathof(Nemo)), "..", "local"))
+singular_dir = realpath(joinpath(dirname(pathof(Singular)), "..", "local"))
 
 oldwdir = pwd()
 cd(lib_dir)
