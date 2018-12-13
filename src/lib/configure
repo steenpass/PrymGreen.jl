@@ -1,6 +1,8 @@
 #!/bin/sh
 
+CXXWRAP_DIR=/usr/local
 FLINT_DIR=/usr/local
+JULIA_DIR=/usr/local
 SINGULAR_DIR=/usr/local
 
 absolute_path() {
@@ -21,8 +23,14 @@ while [ "$1" != "" ]; do
         --prefix)
             PREFIX="$VALUE"
             ;;
+        --with-cxxwrap)
+            CXXWRAP_DIR=$(absolute_path "$VALUE")
+            ;;
         --with-flint)
             FLINT_DIR=$(absolute_path "$VALUE")
+            ;;
+        --with-julia)
+            JULIA_DIR=$(absolute_path "$VALUE")
             ;;
         --with-singular)
             SINGULAR_DIR=$(absolute_path "$VALUE")
@@ -65,7 +73,9 @@ echo "CFLAGS=$CFLAGS" >> Makefile
 echo "CXX=$CXX" >> Makefile
 echo "CXXFLAGS=$CXXFLAGS" >> Makefile
 echo "PREFIX=$PREFIX" >> Makefile
+echo "CXXWRAP_DIR=$CXXWRAP_DIR" >> Makefile
 echo "FLINT_DIR=$FLINT_DIR" >> Makefile
+echo "JULIA_DIR=$JULIA_DIR" >> Makefile
 echo "SINGULAR_DIR=$SINGULAR_DIR" >> Makefile
 echo "Q=$Q" >> Makefile
 echo "" >> Makefile

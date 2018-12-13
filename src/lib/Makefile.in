@@ -1,5 +1,5 @@
 SOURCES_C=berlekamp_massey.c binomial_coeffs.c gauss.c prym_green.c
-SOURCES_CXX=submatrix.cc
+SOURCES_CXX=cxxwrap.cc submatrix.cc
 HEADERS=prym_green_types.h
 HEADERS+=$(SOURCES_C:.c=.h) $(SOURCES_CXX:.cc=.h)
 OBJECTS_C=$(SOURCES_C:.c=.o)
@@ -7,21 +7,32 @@ OBJECTS_CXX=$(SOURCES_CXX:.cc=.o)
 OBJECTS=$(OBJECTS_C) $(OBJECTS_CXX)
 LIBNAME=libprymgreen.so
 
+CXX_MACROS=-DJULIA_ENABLE_THREADING=1
+
+INCLUDE_CXXWRAP=-I$(CXXWRAP_DIR)/include
 INCLUDE_FLINT=-I$(FLINT_DIR)/include
+INCLUDE_JULIA=-I$(JULIA_DIR)/include/julia
 INCLUDE_SINGULAR=-I$(SINGULAR_DIR)/include -I$(SINGULAR_DIR)/include/singular
 
-LINKING_OPTIONS=-Wl,-rpath,$(FLINT_DIR)/lib,-rpath,$(SINGULAR_DIR)/lib
-LINKING_OPTIONS+=-L$(FLINT_DIR)/lib -L$(SINGULAR_DIR)/lib -lflint
+C_INCLUDE=$(INCLUDE_FLINT)
+CXX_INCLUDE=$(INCLUDE_JULIA) $(INCLUDE_CXXWRAP) $(INCLUDE_SINGULAR)
+
+LINK_CXXWRAP=-L$(CXXWRAP_DIR)/lib -Wl,-rpath,$(CXXWRAP_DIR)/lib -lcxxwrap_julia
+LINK_FLINT=-L$(FLINT_DIR)/lib -Wl,-rpath,$(FLINT_DIR)/lib -lflint
+LINK_JULIA=-L$(JULIA_DIR)/lib -Wl,-rpath,$(JULIA_DIR)/lib -ljulia
+LINK_SINGULAR=-L$(SINGULAR_DIR)/lib -Wl,-rpath,$(SINGULAR_DIR)/lib -lSingular
+
+LINKING_OPTIONS=$(LINK_CXXWRAP) $(LINK_FLINT) $(LINK_JULIA) $(LINK_SINGULAR)
 
 all: $(LIBNAME)
 
 $(OBJECTS_C): %.o: %.c
 	@echo "  CC      $@"
-	$(Q)$(CC) -c $(CFLAGS) $(INCLUDE_FLINT) -o$@ $<
+	$(Q)$(CC) -c $(CFLAGS) $(C_INCLUDE) -o$@ $<
 
 $(OBJECTS_CXX): %.o: %.cc
 	@echo "  CXX     $@"
-	$(Q)$(CXX) -c $(CXXFLAGS) $(INCLUDE_SINGULAR) -o$@ $<
+	$(Q)$(CXX) -c $(CXXFLAGS) $(CXX_MACROS) $(CXX_INCLUDE) -o$@ $<
 
 $(LIBNAME): $(OBJECTS)
 	@echo "  CCLD    $@"
