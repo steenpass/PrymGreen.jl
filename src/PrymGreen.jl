@@ -19,10 +19,10 @@ function __init__()
     CxxWrap.@initcxx
 end
 
-global const Msize_t = typeof(icxx"""(msize_t)0;""")
-global const Nvals_t = typeof(icxx"""(nvals_t)0;""")
-global const Entry_t = typeof(icxx"""(entry_t)0;""")
-global const Arith_t = typeof(icxx"""(arith_t)0;""")
+global const Msize_t = typeof(return_msize_t())
+global const Nvals_t = typeof(return_nvals_t())
+global const Entry_t = typeof(return_entry_t())
+global const Arith_t = typeof(return_arith_t())
 
 include("singular_tools.jl")
 include("generate_random_pcnc.jl")

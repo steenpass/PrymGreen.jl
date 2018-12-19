@@ -8,6 +8,8 @@
 
 #pragma GCC diagnostic pop
 
+#include "prym_green_types.h"
+
 JLCXX_MODULE define_julia_module(jlcxx::Module& mod);
 
 #endif   // CXXWRAP_H
