@@ -2,16 +2,8 @@
 
 import CxxWrap
 
-@info "Loading Nemo and Singular."
-@info "STDOUT and STDERR redirected to /dev/null."
-s_out = stdout
-s_err = stderr
-redirect_stdout(open("/dev/null", "w"))
-redirect_stderr(open("/dev/null", "w"))
 import Nemo
 import Singular
-redirect_stdout(s_out)
-redirect_stderr(s_err)
 
 pkg_dir = realpath(joinpath(@__DIR__, ".."))
 lib_dir = joinpath(pkg_dir, "src", "lib")
