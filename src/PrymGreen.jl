@@ -1,6 +1,7 @@
 module PrymGreen
 
-using Cxx
+import CxxWrap
+import Libdl
 import LightXML
 
 import Nemo
@@ -9,20 +10,19 @@ import Singular
 
 export run_example, check_prym_green_conjecture
 
-const pkgdir = Pkg.dir("PrymGreen")   # to be replaced with @__MODULE__
-Cxx.addHeaderDir(joinpath(pkgdir, "local", "include"), kind = Cxx.C_User)
-Cxx.cxxinclude(joinpath("submatrix.h"), isAngled = false)
+const pkgdir = realpath(joinpath(@__DIR__, ".."))
+const libdir = realpath(joinpath(pkgdir, "local", "lib"))
+
+CxxWrap.@wrapmodule(realpath(joinpath(libdir, "libprymgreen." * Libdl.dlext)))
+
+function __init__()
+    CxxWrap.@initcxx
+end
 
 global const Msize_t = typeof(icxx"""(msize_t)0;""")
 global const Nvals_t = typeof(icxx"""(nvals_t)0;""")
 global const Entry_t = typeof(icxx"""(entry_t)0;""")
 global const Arith_t = typeof(icxx"""(arith_t)0;""")
-
-function __init__()
-    ldir = joinpath(pkgdir, "local", "lib")
-    push!(Libdl.DL_LOAD_PATH, ldir)
-    Libdl.dlopen(joinpath("libprymgreen"), Libdl.RTLD_GLOBAL)
-end
 
 include("singular_tools.jl")
 include("generate_random_pcnc.jl")
