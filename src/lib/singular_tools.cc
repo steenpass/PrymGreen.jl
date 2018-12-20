@@ -21,3 +21,9 @@ std::string rOrdStr_wrapper(ring r)
     omFree(ordstr);
     return res;
 }
+
+long Singular_MaxBytesSystem()
+{
+    omUpdateInfo();
+    return om_Info.MaxBytesSystem;
+}

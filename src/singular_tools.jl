@@ -24,13 +24,6 @@ function fres(id::Singular.sideal{T}, max_length::Int,
     return Singular.sresolution{T}(R, Int(length), r)
 end
 
-function Singular_MaxBytesSystem()
-    icxx"""
-            omUpdateInfo();
-            om_Info.MaxBytesSystem;
-        """
-end
-
 #=
 Apply the map x -> z to p where x is assumed to be a variable.
 =#
