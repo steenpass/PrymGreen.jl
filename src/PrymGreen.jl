@@ -1,5 +1,6 @@
 module PrymGreen
 
+import AbstractAlgebra
 import CxxWrap
 import Libdl
 import LightXML

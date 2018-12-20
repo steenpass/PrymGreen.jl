@@ -1,33 +1,11 @@
-using Cxx
-import AbstractAlgebra
-import Singular
-
 #=
 modified copy from Singular.jl (commit b277b7c) to make use_cache and
 use_tensor_trick available
 =#
-function id_fres(I::Singular.libSingular.ideal, n::Cint, method::String,
-        R::Singular.libSingular.ring, use_cache::Bool, use_tensor_trick::Bool)
-    s = icxx"""
-            const ring origin = currRing;
-            rChangeCurrRing($R);
-            syStrategy s = syFrank($I, $n, $method, $use_cache,
-                    $use_tensor_trick);
-            rChangeCurrRing(origin);
-            s;
-        """
-    r = icxx"""$s->fullres;"""
-    length = icxx"""$s->length;"""
-    r, Int(length)
-end
-
-#=
-modified copy from Singular.jl (commit b277b7c) to make use_cache and
-use_tensor_trick available
-=#
-function fres{T <: AbstractAlgebra.RingElem}(id::Singular.sideal{T},
-        max_length::Int, method::String = "complete";
-        use_cache::Bool = true, use_tensor_trick::Bool = false)
+function fres(id::Singular.sideal{T}, max_length::Int,
+        method::String = "complete";
+        use_cache::Bool = true, use_tensor_trick::Bool = false
+        ) where T <: AbstractAlgebra.RingElem
     id.isGB == false && error("ideal is not a standard basis")
     max_length < 0 && error("length for fres must not be negative")
     R = Singular.base_ring(id)
@@ -43,7 +21,7 @@ function fres{T <: AbstractAlgebra.RingElem}(id::Singular.sideal{T},
     end
     r, length = PrymGreen.id_fres(id.ptr, Cint(max_length), method, R.ptr,
             use_cache, use_tensor_trick)
-    return Singular.sresolution{T}(R, length, r)
+    return Singular.sresolution{T}(R, Int(length), r)
 end
 
 function rOrdStr(r::Singular.libSingular.ring)

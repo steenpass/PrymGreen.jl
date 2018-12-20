@@ -1,5 +1,5 @@
 SOURCES_C=berlekamp_massey.c binomial_coeffs.c gauss.c prym_green.c
-SOURCES_CXX=cxxwrap.cc submatrix.cc
+SOURCES_CXX=cxxwrap.cc singular_tools.cc submatrix.cc
 HEADERS=prym_green_types.h
 HEADERS+=$(SOURCES_C:.c=.h) $(SOURCES_CXX:.cc=.h)
 OBJECTS_C=$(SOURCES_C:.c=.o)
