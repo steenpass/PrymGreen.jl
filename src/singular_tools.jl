@@ -29,8 +29,8 @@ Apply the map x -> z to p where x is assumed to be a variable.
 =#
 function substitute_variable(p::Singular.spoly{T}, x::Singular.spoly{T},
         z::Singular.spoly{T}) where T <: AbstractAlgebra.RingElem
-    R = parent(p)
-    all(a -> parent(a) === R, [x, z]) || error("incompatible rings")
+    R = Singular.parent(p)
+    all(a -> Singular.parent(a) === R, [x, z]) || error("incompatible rings")
     index_var = findfirst(isequal(x), Singular.gens(R))
     index_var != nothing || error("x is not a variable")
     res_ptr = p_SubstPoly(p.ptr, index_var, z.ptr, R.ptr, R.ptr);
@@ -50,8 +50,10 @@ function poly_substitute(p::Singular.spoly{T}, X::Array{Singular.spoly{T}, 1},
     return p
 end
 
-function Module{T <: AbstractAlgebra.RingElem}(A::Array{Singular.spoly{T}, 2})
+function Module(A::Array{Singular.spoly{T}, 2}
+        ) where T <: AbstractAlgebra.RingElem
     R = Singular.parent(A[1])
+    all(a -> Singular.parent(a) === R, A) || error("incompatible rings")
     cols = [ Singular.vector(R, A[:, i]...) for i in 1:size(A, 2) ]
     return Singular.Module(R, cols...)
 end
