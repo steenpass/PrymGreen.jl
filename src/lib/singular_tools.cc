@@ -27,3 +27,9 @@ long Singular_MaxBytesSystem()
     omUpdateInfo();
     return om_Info.MaxBytesSystem;
 }
+
+poly p_SubstPoly_wrapper(poly p, int var, poly image, const ring preimage_r,
+        const ring image_r)
+{
+    return p_SubstPoly(p, var, image, preimage_r, image_r, ndCopyMap);
+}

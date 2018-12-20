@@ -28,16 +28,12 @@ end
 Apply the map x -> z to p where x is assumed to be a variable.
 =#
 function substitute_variable(p::Singular.spoly{T}, x::Singular.spoly{T},
-        z::Singular.spoly{T}) where T
+        z::Singular.spoly{T}) where T <: AbstractAlgebra.RingElem
     R = parent(p)
-    index_var = findfirst(Singular.gens(R), x)
-    @assert index_var != 0
-    p_ptr = p.ptr
-    z_ptr = z.ptr
-    R_ptr = R.ptr
-    res_ptr = icxx"""
-        p_SubstPoly($p_ptr, $index_var, $z_ptr, $R_ptr, $R_ptr, ndCopyMap);
-    """
+    all(a -> parent(a) === R, [x, z]) || error("incompatible rings")
+    index_var = findfirst(isequal(x), Singular.gens(R))
+    index_var != nothing || error("x is not a variable")
+    res_ptr = p_SubstPoly(p.ptr, index_var, z.ptr, R.ptr, R.ptr);
     return R(res_ptr)
 end
 
@@ -46,8 +42,8 @@ Successively apply the maps X[i] -> Z[i] to p where the X[i] are assumed to be
 variables.
 =#
 function poly_substitute(p::Singular.spoly{T}, X::Array{Singular.spoly{T}, 1},
-        Z::Array{Singular.spoly{T}, 1}) where T
-    @assert length(X) == length(Z)
+        Z::Array{Singular.spoly{T}, 1}) where T <: AbstractAlgebra.RingElem
+    length(X) == length(Z) || error("incompatible lengths")
     for i in 1:length(X)
         p = substitute_variable(p, X[i], Z[i])
     end
