@@ -13,5 +13,6 @@
 
 std::tuple<void *, int> id_fres(ideal I, int n, std::string method,
         bool use_cache, bool use_tensor_trick, ring R);
+std::string rOrdStr_wrapper(ring r);
 
 #endif   // SINGULAR_TOOLS_H

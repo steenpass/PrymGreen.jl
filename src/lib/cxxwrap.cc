@@ -8,4 +8,5 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
     mod.method("return_arith_t", []() { return (arith_t)0; } );
 
     mod.method("id_fres", &id_fres);
+    mod.method("rOrdStr", &rOrdStr_wrapper);
 }

@@ -13,3 +13,11 @@ std::tuple<void *, int> id_fres(ideal I, int n, std::string method,
     rChangeCurrRing(origin);
     return std::make_tuple(reinterpret_cast<void *>(s->fullres), s->length);
 }
+
+std::string rOrdStr_wrapper(ring r)
+{
+    char *ordstr = rOrdStr(r);
+    std::string res(ordstr);
+    omFree(ordstr);
+    return res;
+}

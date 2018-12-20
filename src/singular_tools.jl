@@ -24,13 +24,6 @@ function fres(id::Singular.sideal{T}, max_length::Int,
     return Singular.sresolution{T}(R, Int(length), r)
 end
 
-function rOrdStr(r::Singular.libSingular.ring)
-    ordstr = icxx"""rOrdStr($r);"""
-    res = unsafe_string(ordstr)
-    icxx"""omFree($ordstr);"""
-    res
-end
-
 function Singular_MaxBytesSystem()
     icxx"""
             omUpdateInfo();
