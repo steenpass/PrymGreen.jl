@@ -58,10 +58,6 @@ function Module(A::Array{Singular.spoly{T}, 2}
     return Singular.Module(R, cols...)
 end
 
-function n_Int(n::Singular.libSingular.number, R::Singular.libSingular.coeffs)
-    icxx"""n_Int($n, $R);"""
-end
-
 function Int(n::Singular.n_Z)
     R = Singular.parent(n)
     return n_Int(n.ptr, R.ptr)

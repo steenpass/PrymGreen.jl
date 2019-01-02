@@ -6,6 +6,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-value"
 
+#include "coeffs/longrat.h"
 #include "kernel/ideals.h"
 #include "kernel/GBEngine/syz.h"
 #include "kernel/maps/gen_maps.h"
