@@ -1,5 +1,6 @@
 import AbstractAlgebra
 import Nemo
+import Random
 import Singular
 
 #=
@@ -24,7 +25,7 @@ exists a primitive n-th root of unity in Z/pZ, that is, such that n divides
 p-1.
 =#
 function random_prime_with_primitive_root_of_unity(a::Int, b::Int, n::Int,
-        rng::AbstractRNG)
+        rng::Random.AbstractRNG)
     from = div(a+n-2, n)   # = ceil((a-1)/n)
     to = div(b-1, n)   # = floor((b-1)/n)
     interval = from:to
@@ -52,7 +53,7 @@ exists a primitive n-th root of unity in R := Z/pZ and choose a uniformly
 random n-th root of unity z in R. Return (R, z).
 =#
 function random_primitive_root_of_unity(a::Int, b::Int, n::Int,
-        rng::AbstractRNG)
+        rng::Random.AbstractRNG)
     n > 0 || error("n must be positive")
     p = random_prime_with_primitive_root_of_unity(a, b, n, rng)
     k = div(p-1, n)
@@ -65,8 +66,8 @@ function random_primitive_root_of_unity(a::Int, b::Int, n::Int,
     (R, z)
 end
 
-function are_distinct_points_of_P1{T <: AbstractAlgebra.RingElem}(
-        M::Array{T, 2})
+function are_distinct_points_of_P1(M::Array{T, 2}) where
+        T <: AbstractAlgebra.RingElem
     @assert size(M, 1) == 2
     for i in 2:size(M, 2)
         for j in 1:(i-1)
@@ -78,18 +79,19 @@ function are_distinct_points_of_P1{T <: AbstractAlgebra.RingElem}(
     return true
 end
 
-function random_field_elements(rng::AbstractRNG, R::Nemo.NmodRing, dims::Dims)
+function random_field_elements(rng::Random.AbstractRNG, R::Nemo.NmodRing,
+        dims::Dims)
     @assert Nemo.isprime(R.n)
     return R.(rand(rng, 1:R.n, dims))
 end
 
-function random_field_elements(rng::AbstractRNG, R::Singular.N_ZpField,
+function random_field_elements(rng::Random.AbstractRNG, R::Singular.N_ZpField,
         dims::Dims)
     return R.(rand(rng, 1:Int(Singular.characteristic(R)), dims))
 end
 
 function random_distinct_points_of_P1(R::AbstractAlgebra.Ring, n::Int,
-        rng::AbstractRNG)
+        rng::Random.AbstractRNG)
     M = random_field_elements(rng, R, (2, n))
     while !are_distinct_points_of_P1(M)
         M = random_field_elements(rng, R, (2, n))
@@ -97,8 +99,8 @@ function random_distinct_points_of_P1(R::AbstractAlgebra.Ring, n::Int,
     return M
 end
 
-function canonical_multipliers{T <: AbstractAlgebra.RingElem}(P::Array{T, 2},
-        Q::Array{T, 2})
+function canonical_multipliers(P::Array{T, 2}, Q::Array{T, 2}) where
+        T <: AbstractAlgebra.RingElem
     @assert size(P, 1) == 2
     @assert size(Q, 1) == 2
     g = size(P, 2)
@@ -114,14 +116,15 @@ function canonical_multipliers{T <: AbstractAlgebra.RingElem}(P::Array{T, 2},
     return unwrap.(A)
 end
 
-function change_multiplier{T <: AbstractAlgebra.RingElem}(A::Array{T, 2}, r::T)
+function change_multiplier(A::Array{T, 2}, r::T) where
+        T <: AbstractAlgebra.RingElem
     @assert size(A, 1) == 2
     A[2, :] .*= r
     return A
 end
 
-function linear_series_from_multipliers{T <: AbstractAlgebra.RingElem}(
-        P::Array{T, 2}, Q::Array{T, 2}, A::Array{T, 2})
+function linear_series_from_multipliers(P::Array{T, 2}, Q::Array{T, 2},
+        A::Array{T, 2}) where T <: AbstractAlgebra.RingElem
     R = AbstractAlgebra.parent(P[1])
     S, X = Singular.PolynomialRing(R, ["x_0", "x_1"])
     g = size(P, 2)
@@ -139,7 +142,7 @@ end
 #=
 Compute a random Prym canonical nodal curve of genus g and level l.
 =#
-function random_PCNC(g::Int, l::Int, rng::AbstractRNG)
+function random_PCNC(g::Int, l::Int, rng::Random.AbstractRNG)
     # 268435399 is the limit for Singular.Fp()
     (R, r) = random_primitive_root_of_unity(2, 268435399, l, rng)
     P = random_distinct_points_of_P1(R, g, rng)

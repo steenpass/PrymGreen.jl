@@ -1,3 +1,6 @@
+import AbstractAlgebra
+import Singular
+
 #=
 modified copy from Singular.jl (commit b277b7c) to make use_cache and
 use_tensor_trick available
