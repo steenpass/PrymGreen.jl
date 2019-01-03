@@ -7,6 +7,7 @@ import LightXML
 
 import Nemo
 import Hecke
+import Random
 import Singular
 
 export run_example, check_prym_green_conjecture
@@ -190,7 +191,7 @@ function gauss(A_dense::Array{Entry_t, 2}, char::Entry_t)
 end
 
 function check_multiplication(A::Array{Entry_t, 1}, res::Singular.sresolution,
-        R::Singular.PolyRing, g::Int, char::Entry_t, rng::AbstractRNG)
+        R::Singular.PolyRing, g::Int, char::Entry_t, rng::Random.AbstractRNG)
     g > 18 && return
     prym_green_size, limit = betti_table_entries(res, g)
     A = Array{Arith_t, 1}(A)
@@ -216,7 +217,7 @@ function print_matrix_info(A::Array{Entry_t, 1}, prym_green_size::Msize_t)
 end
 
 function recurrence_sequence(A::Array{Entry_t, 1}, prym_green_size::Msize_t,
-        g::Int, char::Entry_t, rng::AbstractRNG)
+        g::Int, char::Entry_t, rng::Random.AbstractRNG)
     A = Array{Arith_t, 1}(A)
     char = Arith_t(char)
     v = Array{Arith_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
@@ -228,7 +229,7 @@ function recurrence_sequence(A::Array{Entry_t, 1}, prym_green_size::Msize_t,
                 Msize_t, Int, Arith_t),
             seq_ptr, A, size(A, 1), v, prym_green_size, index, g, char)
     seq = unsafe_wrap(Array, unsafe_load(seq_ptr), (length_seq, ), true)
-    ccall((:free, "libc"), Void, (Ptr{Ptr{Arith_t}}, ), seq_ptr)
+    ccall((:free, "libc"), Nothing, (Ptr{Ptr{Arith_t}}, ), seq_ptr)
     seq
 end
 
@@ -240,7 +241,7 @@ function berlekamp_massey(S::Array{Arith_t, 1}, char::Entry_t)
             (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Msize_t, Arith_t),
             lfsr_ptr, S, size(S, 1), char)
     lfsr = unsafe_wrap(Array, unsafe_load(lfsr_ptr), (length_lfsr, ), true)
-    ccall((:free, "libc"), Void, (Ptr{Ptr{Arith_t}}, ), lfsr_ptr)
+    ccall((:free, "libc"), Nothing, (Ptr{Ptr{Arith_t}}, ), lfsr_ptr)
     lfsr
 end
 
