@@ -155,7 +155,7 @@ function multiply_matrix(A::Array{Arith_t, 1}, v::Array{Arith_t, 1}, g::Int,
             (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Ptr{Arith_t}, Int, Arith_t),
             Axv_ptr, A, v, g, char)
     Axv = unsafe_wrap(Array, unsafe_load(Axv_ptr), (length_Axv, ), true)
-    ccall((:free, "libc"), Void, (Ptr{Ptr{Arith_t}}, ), Axv_ptr)
+    ccall((:free, "libc"), Nothing, (Ptr{Ptr{Arith_t}}, ), Axv_ptr)
     Axv
 end
 
