@@ -126,16 +126,17 @@ function submatrix(res::Singular.sresolution, R::Singular.PolyRing, g::Int,
         char::Entry_t)
     check_ordering(R)
     prym_green_size, limit = betti_table_entries(res, g)
-    values_ptr = icxx"""(entry_t **)malloc(sizeof(entry_t *));"""
+    values_ptr = ccall((:malloc, "libc"), Ptr{Ptr{Entry_t}}, (Csize_t, ),
+            sizeof(Ptr{Entry_t}))
     res_ptr = res.ptr
     R_ptr = R.ptr
-    n_values = icxx"""check_matrix($values_ptr, $res_ptr, $g, $prym_green_size,
-            $limit, $char, $R_ptr);"""
+    n_values = check_matrix(values_ptr, res_ptr, g, prym_green_size, limit,
+        char, R_ptr)
     if n_values == 0
         error("number of values in Prym-Green matrix must be positive")
     end
     A = unsafe_wrap(Array, unsafe_load(values_ptr), (n_values, ), true)
-    icxx"""free($values_ptr);"""
+    ccall((:free, "libc"), Nothing, (Ptr{Ptr{Entry_t}}, ), values_ptr)
     A, prym_green_size
 end
 

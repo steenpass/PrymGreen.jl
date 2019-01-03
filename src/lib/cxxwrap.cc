@@ -1,5 +1,12 @@
 #include "cxxwrap.h"
 
+static nvals_t check_matrix_wrapper(void *values_ptr, void *res, int g,
+        msize_t size, msize_t limit, entry_t c, ring R)
+{
+    return check_matrix(reinterpret_cast<entry_t **>(values_ptr),
+            reinterpret_cast<resolvente>(res), g, size, limit, c, R);
+}
+
 JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
 {
     mod.method("return_msize_t", []() { return (msize_t)0; } );
@@ -12,4 +19,5 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
     mod.method("Singular_MaxBytesSystem", &Singular_MaxBytesSystem);
     mod.method("p_SubstPoly", &p_SubstPoly_wrapper);
     mod.method("n_Int", [](number n, const coeffs r) { return n_Int(n, r); } );
+    mod.method("check_matrix", &check_matrix_wrapper);
 }
