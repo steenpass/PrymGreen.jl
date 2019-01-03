@@ -128,10 +128,8 @@ function submatrix(res::Singular.sresolution, R::Singular.PolyRing, g::Int,
     prym_green_size, limit = betti_table_entries(res, g)
     values_ptr = ccall((:malloc, "libc"), Ptr{Ptr{Entry_t}}, (Csize_t, ),
             sizeof(Ptr{Entry_t}))
-    res_ptr = res.ptr
-    R_ptr = R.ptr
-    n_values = check_matrix(values_ptr, res_ptr, g, prym_green_size, limit,
-        char, R_ptr)
+    n_values = check_matrix(values_ptr, res.ptr, g, prym_green_size, limit,
+        char, R.ptr)
     if n_values == 0
         error("number of values in Prym-Green matrix must be positive")
     end
@@ -159,17 +157,15 @@ function multiply_matrix(A::Array{Arith_t, 1}, v::Array{Arith_t, 1}, g::Int,
     Axv
 end
 
-function dense_matrix(res::Singular.sresolution, R::Singular.PolyRing, g::Int,
-        prym_green_size::Msize_t, limit::Msize_t)
-    A_dense_ptr =
-            icxx"""(entry_t **)malloc($prym_green_size*sizeof(entry_t *));"""
-    res_ptr = res.ptr
-    R_ptr = R.ptr
-    size_A = icxx"""dense_matrix($A_dense_ptr, $res_ptr, $g, $prym_green_size,
-            $limit, $R_ptr);"""
+function dense_pg_matrix(res::Singular.sresolution, R::Singular.PolyRing,
+        g::Int, prym_green_size::Msize_t, limit::Msize_t)
+    A_dense_ptr = ccall((:malloc, "libc"), Ptr{Ptr{Entry_t}}, (Csize_t, ),
+            prym_green_size*sizeof(Ptr{Entry_t}))
+    size_A = dense_matrix(A_dense_ptr, res.ptr, g, prym_green_size, limit,
+            R.ptr);
     A_dense = unsafe_wrap(Array, unsafe_load(A_dense_ptr), (size_A, size_A),
             true)
-    icxx"""free($A_dense_ptr);"""
+    ccall((:free, "libc"), Nothing, (Ptr{Ptr{Entry_t}}, ), A_dense_ptr)
     A_dense
 end
 
@@ -200,7 +196,7 @@ function check_multiplication(A::Array{Entry_t, 1}, res::Singular.sresolution,
     A = Array{Arith_t, 1}(A)
     v = Array{Arith_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
     Axv = multiply_matrix(A, v, g, char)
-    A_dense = dense_matrix(res, R, g, prym_green_size, limit)
+    A_dense = dense_pg_matrix(res, R, g, prym_green_size, limit)
     A_dense = Array{UInt128, 2}(A_dense)
     # gauss(A_dense, char)
     # write_dense_matrix(A_dense, g, char)
