@@ -22,8 +22,8 @@ function fres(id::Singular.sideal{T}, max_length::Int,
             && method != "single module")
         error("wrong optional argument for fres")
     end
-    r, length = PrymGreen.id_fres(id.ptr, Cint(max_length), method, R.ptr,
-            use_cache, use_tensor_trick)
+    r, length = PrymGreen.id_fres(id.ptr, Cint(max_length), method, use_cache,
+        use_tensor_trick, R.ptr)
     return Singular.sresolution{T}(R, Int(length), r)
 end
 
