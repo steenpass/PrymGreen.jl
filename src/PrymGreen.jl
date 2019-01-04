@@ -2,11 +2,10 @@ module PrymGreen
 
 import AbstractAlgebra
 import CxxWrap
+import Hecke
 import Libdl
 import LightXML
-
 import Nemo
-import Hecke
 import Random
 import Singular
 

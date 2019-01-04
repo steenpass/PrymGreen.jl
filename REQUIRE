@@ -1,6 +1,7 @@
 julia 0.7
 AbstractAlgebra
 CxxWrap
+Hecke
 LightXML
 Nemo
 Singular
