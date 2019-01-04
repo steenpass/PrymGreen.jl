@@ -1,17 +1,15 @@
 @info("Building PrymGreen")
 
-import CxxWrap
-
-import Nemo
-import Singular
-
 pkg_dir = realpath(joinpath(@__DIR__, ".."))
 lib_dir = joinpath(pkg_dir, "src", "lib")
 local_dir = joinpath(pkg_dir, "local")
-cxxwrap_dir = realpath(joinpath(dirname(pathof(CxxWrap)), "..", "deps", "usr"))
-flint_dir = realpath(joinpath(dirname(pathof(Nemo)), "..", "local"))
+cxxwrap_dir = Base.find_package("PrymGreen", "CxxWrap")
+cxxwrap_dir = realpath(joinpath(dirname(cxxwrap_dir), "..", "deps", "usr"))
+flint_dir = Base.find_package("PrymGreen", "Nemo")
+flint_dir = realpath(joinpath(dirname(flint_dir), "..", "local"))
 julia_dir = realpath(joinpath(Sys.BINDIR, ".."))
-singular_dir = realpath(joinpath(dirname(pathof(Singular)), "..", "local"))
+singular_dir = Base.find_package("PrymGreen", "Singular")
+singular_dir = realpath(joinpath(dirname(singular_dir), "..", "local"))
 
 oldwdir = pwd()
 cd(lib_dir)
