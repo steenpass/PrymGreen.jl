@@ -30,7 +30,7 @@ include("generate_random_pcnc.jl")
 
 function read_xml_file(filename::String)
     file = open(filename)
-    s = "<root>\n" * readstring(file) * "</root>"
+    s = "<root>\n" * read(file, String) * "</root>"
     close(file)
     example_xml = LightXML.parse_string(s)
     root_xml = LightXML.root(example_xml)
@@ -38,10 +38,10 @@ function read_xml_file(filename::String)
     char = LightXML.content(LightXML.find_element(root_xml, "char"))
     char = parse(Entry_t, char)
     vars = LightXML.content(LightXML.find_element(root_xml, "vars"))
-    vars = split(vars, ['\n', ' ', '[', ',', ']'], keep = false)
+    vars = split(vars, ['\n', ' ', '[', ',', ']'], keepempty = false)
     vars = Array{String, 1}(vars)
     basis = LightXML.content(LightXML.find_element(root_xml, "basis"))
-    basis = split(basis, ['\n', ' ', '[', ',', ']'], keep = false)
+    basis = split(basis, ['\n', ' ', '[', ',', ']'], keepempty = false)
     basis = Array{String, 1}(basis)
     LightXML.free(example_xml)
     key, char, vars, basis
@@ -53,9 +53,9 @@ function load_example(filename::String)
     R, X = Singular.PolynomialRing(Singular.Fp(Int(char)), vars;
             ordering = :degrevlex, ordering2 = :comp1max)
     for (i, s) in enumerate(vars)
-        eval(parse("$s = X[$i]"))
+        eval(Meta.parse("$s = X[$i]"))
     end
-    I = Singular.Ideal(R, [ eval(parse(s)) for s in basis ])
+    I = Singular.Ideal(R, [ eval(Meta.parse(s)) for s in basis ])
     R, I, key
 end
 
@@ -97,10 +97,10 @@ function set_degree_bound(R::Singular.PolyRing, I::Singular.sideal, d::Int)
     S, X = Singular.PolynomialRing(Singular.base_ring(R), vars;
             degree_bound = d, ordering = :degrevlex, ordering2 = :comp1max)
     for (i, s) in enumerate(vars)
-        eval(parse("$s = X[$i]"))
+        eval(Meta.parse("$s = X[$i]"))
     end
     J = Singular.Ideal(S,
-            [ eval(parse(string(I[i]))) for i in 1:Singular.ngens(I) ])
+            [ eval(Meta.parse(string(I[i]))) for i in 1:Singular.ngens(I) ])
     S, J
 end
 
@@ -267,7 +267,7 @@ function run_example(filename::String; print_info::Bool = false)
     I = resort(I, R)
     R, I = set_degree_bound(R, I, 3)
     I.isGB = true
-    gc()
+    GC.gc()
     @time res = PrymGreen.fres(I, div(g, 2)-2, "single module";
             use_cache = false, use_tensor_trick = true)
     @time A, prym_green_size = submatrix(res, R, g, char)
@@ -275,7 +275,7 @@ function run_example(filename::String; print_info::Bool = false)
     rng = init_rng()
     check_multiplication(A, res, R, g, char, rng)
     res = nothing
-    gc()
+    GC.gc()
     @time S = recurrence_sequence(A, prym_green_size, g, char, rng)
     print_info && println("S[1:4]   = ", map(x -> Int(x), S[1:4]))
     @time C = PrymGreen.berlekamp_massey(S, char)
