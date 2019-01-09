@@ -142,8 +142,8 @@ function submatrix(res::Singular.sresolution, R::Singular.PolyRing, g::Int,
     check_ordering(R)
     prym_green_size, limit = betti_table_entries(res, g)
     values_ptr = malloc(Ptr{Entry_t})
-    n_values = check_matrix(values_ptr, res.ptr, g, prym_green_size, limit,
-        char, R.ptr)
+    n_values = check_matrix(Ptr{Nothing}(values_ptr), res.ptr, g,
+            prym_green_size, limit, char, R.ptr)
     if n_values == 0
         error("number of values in Prym-Green matrix must be positive")
     end
@@ -175,8 +175,8 @@ end
 function dense_pg_matrix(res::Singular.sresolution, R::Singular.PolyRing,
         g::Int, prym_green_size::Msize_t, limit::Msize_t)
     A_dense_ptr = malloc(Ptr{Entry_t}, prym_green_size)
-    size_A = dense_matrix(A_dense_ptr, res.ptr, g, prym_green_size, limit,
-            R.ptr);
+    size_A = dense_matrix(Ptr{Nothing}(A_dense_ptr), res.ptr, g,
+            prym_green_size, limit, R.ptr)
     A_dense = unsafe_wrap(Array{Entry_t, 2}, unsafe_load(A_dense_ptr),
             (size_A, size_A); own = true)
     free(A_dense_ptr)
