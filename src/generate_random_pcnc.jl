@@ -44,7 +44,7 @@ function random_prime_with_primitive_root_of_unity(a::Int, b::Int, n::Int,
         k = rand(rng, interval)
         p = n*k+1
     end
-    p
+    return p
 end
 
 #=
@@ -63,7 +63,7 @@ function random_primitive_root_of_unity(a::Int, b::Int, n::Int,
     while !has_multiplicative_order(z, n)
         z = R(rand(rng, 1:(p-1)))^k
     end
-    (R, z)
+    return (R, z)
 end
 
 function are_distinct_points_of_P1(M::Array{T, 2}) where

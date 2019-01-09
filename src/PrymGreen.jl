@@ -59,7 +59,7 @@ function read_xml_file(filename::String)
     basis = split(basis, ['\n', ' ', '[', ',', ']'], keepempty = false)
     basis = Array{String, 1}(basis)
     LightXML.free(example_xml)
-    key, char, vars, basis
+    return (key, char, vars, basis)
 end
 
 function load_example(filename::String)
@@ -71,7 +71,7 @@ function load_example(filename::String)
         eval(Meta.parse("$s = X[$i]"))
     end
     I = Singular.Ideal(R, [ eval(Meta.parse(s)) for s in basis ])
-    R, I, key
+    return (R, I, key)
 end
 
 function resort(I::Singular.sideal, R::Singular.PolyRing)
@@ -88,7 +88,7 @@ function resort(I::Singular.sideal, R::Singular.PolyRing)
     for k = Singular.ngens(I):-1:i
         J[i+Singular.ngens(I)-k] = I[k]
     end
-    J
+    return J
 end
 
 #=
@@ -116,7 +116,7 @@ function set_degree_bound(R::Singular.PolyRing, I::Singular.sideal, d::Int)
     end
     J = Singular.Ideal(S,
             [ eval(Meta.parse(string(I[i]))) for i in 1:Singular.ngens(I) ])
-    S, J
+    return (S, J)
 end
 
 function check_ordering(R::Singular.PolyRing)
@@ -134,7 +134,7 @@ function betti_table_entries(res::Singular.sresolution, g::Int)
         error("matrix not square")
     end
     limit = Msize_t(B[2, index])
-    prym_green_size, limit
+    return (prym_green_size, limit)
 end
 
 function submatrix(res::Singular.sresolution, R::Singular.PolyRing, g::Int,
@@ -150,13 +150,13 @@ function submatrix(res::Singular.sresolution, R::Singular.PolyRing, g::Int,
     A = unsafe_wrap(Array{Entry_t, 1}, unsafe_load(values_ptr), (n_values, );
             own = true)
     free(values_ptr)
-    A, prym_green_size
+    return (A, prym_green_size)
 end
 
 function init_rng()
     seed = rand(Random.RandomDevice(), UInt32, 4)
     println("rng seed = ", seed)
-    Random.MersenneTwister(seed)
+    return Random.MersenneTwister(seed)
 end
 
 function multiply_matrix(A::Array{Arith_t, 1}, v::Array{Arith_t, 1}, g::Int,
@@ -169,7 +169,7 @@ function multiply_matrix(A::Array{Arith_t, 1}, v::Array{Arith_t, 1}, g::Int,
     Axv = unsafe_wrap(Array{Arith_t, 1}, unsafe_load(Axv_ptr), (length_Axv, );
             own = true)
     free(Axv_ptr)
-    Axv
+    return Axv
 end
 
 function dense_pg_matrix(res::Singular.sresolution, R::Singular.PolyRing,
@@ -180,7 +180,7 @@ function dense_pg_matrix(res::Singular.sresolution, R::Singular.PolyRing,
     A_dense = unsafe_wrap(Array{Entry_t, 2}, unsafe_load(A_dense_ptr),
             (size_A, size_A); own = true)
     free(A_dense_ptr)
-    A_dense
+    return A_dense
 end
 
 function write_dense_matrix(A_dense::Array{Entry_t, 2}, g::Int, char::Entry_t)
@@ -243,7 +243,7 @@ function recurrence_sequence(A::Array{Entry_t, 1}, prym_green_size::Msize_t,
     seq = unsafe_wrap(Array{Arith_t, 1}, unsafe_load(seq_ptr), (length_seq, );
             own = true)
     free(seq_ptr)
-    seq
+    return seq
 end
 
 function berlekamp_massey(S::Array{Arith_t, 1}, char::Entry_t)
@@ -255,7 +255,7 @@ function berlekamp_massey(S::Array{Arith_t, 1}, char::Entry_t)
     lfsr = unsafe_wrap(Array{Arith_t, 1}, unsafe_load(lfsr_ptr),
             (length_lfsr, ); own = true)
     free(lfsr_ptr)
-    lfsr
+    return lfsr
 end
 
 function check_berlekamp_massey(C::Array{Arith_t, 1}, S::Array{Arith_t, 1},
@@ -295,7 +295,7 @@ function run_example(filename::String; print_info::Bool = false)
     @time C = PrymGreen.berlekamp_massey(S, char)
     print_info && println("C[1:4]   = ", map(x -> Int(x), C[1:4]))
     check_berlekamp_massey(C, S, char)
-    nothing
+    return nothing
 end
 
 function check_prym_green_conjecture()
