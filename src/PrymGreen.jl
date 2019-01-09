@@ -144,7 +144,8 @@ function submatrix(res::Singular.sresolution, R::Singular.PolyRing, g::Int,
     if n_values == 0
         error("number of values in Prym-Green matrix must be positive")
     end
-    A = unsafe_wrap(Array, unsafe_load(values_ptr), (n_values, ), true)
+    A = unsafe_wrap(Array{Entry_t, 1}, unsafe_load(values_ptr), (n_values, );
+            own = true)
     free(values_ptr)
     A, prym_green_size
 end
@@ -162,7 +163,8 @@ function multiply_matrix(A::Array{Arith_t, 1}, v::Array{Arith_t, 1}, g::Int,
     length_Axv = ccall((:multiply_matrix, "libprymgreen"), Msize_t,
             (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Ptr{Arith_t}, Int, Arith_t),
             Axv_ptr, A, v, g, char)
-    Axv = unsafe_wrap(Array, unsafe_load(Axv_ptr), (length_Axv, ), true)
+    Axv = unsafe_wrap(Array{Arith_t, 1}, unsafe_load(Axv_ptr), (length_Axv, );
+            own = true)
     free(Axv_ptr)
     Axv
 end
@@ -172,8 +174,8 @@ function dense_pg_matrix(res::Singular.sresolution, R::Singular.PolyRing,
     A_dense_ptr = malloc(Ptr{Entry_t}, prym_green_size)
     size_A = dense_matrix(A_dense_ptr, res.ptr, g, prym_green_size, limit,
             R.ptr);
-    A_dense = unsafe_wrap(Array, unsafe_load(A_dense_ptr), (size_A, size_A),
-            true)
+    A_dense = unsafe_wrap(Array{Entry_t, 2}, unsafe_load(A_dense_ptr),
+            (size_A, size_A); own = true)
     free(A_dense_ptr)
     A_dense
 end
@@ -235,7 +237,8 @@ function recurrence_sequence(A::Array{Entry_t, 1}, prym_green_size::Msize_t,
             (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Nvals_t, Ptr{Arith_t}, Msize_t,
                 Msize_t, Int, Arith_t),
             seq_ptr, A, size(A, 1), v, prym_green_size, index, g, char)
-    seq = unsafe_wrap(Array, unsafe_load(seq_ptr), (length_seq, ), true)
+    seq = unsafe_wrap(Array{Arith_t, 1}, unsafe_load(seq_ptr), (length_seq, );
+            own = true)
     free(seq_ptr)
     seq
 end
@@ -246,7 +249,8 @@ function berlekamp_massey(S::Array{Arith_t, 1}, char::Entry_t)
     length_lfsr = ccall((:berlekamp_massey, "libprymgreen"), Msize_t,
             (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Msize_t, Arith_t),
             lfsr_ptr, S, size(S, 1), char)
-    lfsr = unsafe_wrap(Array, unsafe_load(lfsr_ptr), (length_lfsr, ), true)
+    lfsr = unsafe_wrap(Array{Arith_t, 1}, unsafe_load(lfsr_ptr),
+            (length_lfsr, ); own = true)
     free(lfsr_ptr)
     lfsr
 end
