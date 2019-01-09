@@ -17,6 +17,9 @@ const libdir = realpath(joinpath(pkgdir, "local", "lib"))
 CxxWrap.@wrapmodule(realpath(joinpath(libdir, "libprymgreen." * Libdl.dlext)))
 
 function __init__()
+    ldir = joinpath(pkgdir, "local", "lib")
+    push!(Libdl.DL_LOAD_PATH, ldir)
+    Libdl.dlopen(joinpath("libprymgreen"), Libdl.RTLD_GLOBAL)
     CxxWrap.@initcxx
 end
 
