@@ -154,9 +154,9 @@ function submatrix(res::Singular.sresolution, R::Singular.PolyRing, g::Int,
 end
 
 function init_rng()
-    seed = rand(RandomDevice(), UInt32, 4)
+    seed = rand(Random.RandomDevice(), UInt32, 4)
     println("rng seed = ", seed)
-    MersenneTwister(seed)
+    Random.MersenneTwister(seed)
 end
 
 function multiply_matrix(A::Array{Arith_t, 1}, v::Array{Arith_t, 1}, g::Int,
