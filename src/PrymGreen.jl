@@ -121,7 +121,7 @@ end
 
 function check_ordering(R::Singular.PolyRing)
     ordstr = rOrdStr(R.ptr)
-    if !ismatch(r"^dp\([0-9].*\),c", ordstr)
+    if !occursin(r"^dp\([0-9].*\),c", ordstr)
         error("monomial ordering must be (dp, c)")
     end
 end
@@ -216,9 +216,9 @@ function check_multiplication(A::Array{Entry_t, 1}, res::Singular.sresolution,
     # write_dense_matrix(A_dense, g, char)
     print("mlt. test: ")
     if Axv == A_dense*v .% char
-        print_with_color(:green, "passed\n")
+        printstyled("passed\n"; color = :green)
     else
-        print_with_color(:red, "failed\n"; bold = true)
+        printstyled("failed\n"; bold = true, color = :red)
     end
 end
 
@@ -266,9 +266,9 @@ function check_berlekamp_massey(C::Array{Arith_t, 1}, S::Array{Arith_t, 1},
     C_check = [ Arith_t(Nemo.coeff(f, i).data) for i in Nemo.degree(f):-1:0 ]
     print("B-M. test: ")
     if C == C_check
-        print_with_color(:green, "passed\n")
+        printstyled("passed\n"; color = :green)
     else
-        print_with_color(:red, "failed\n"; bold = true)
+        printstyled("failed\n"; bold = true, color = :red)
     end
 end
 
