@@ -28,6 +28,18 @@ global const Arith_t = typeof(return_arith_t())
 include("singular_tools.jl")
 include("generate_random_pcnc.jl")
 
+function glibc(S::Symbol)
+    return Libdl.dlsym(Libdl.dlopen("libc.so.6"), S)
+end
+
+function malloc(::Type{T}, number::Unsigned = UInt(1)) where T
+    return ccall(glibc(:malloc), Ptr{T}, (Csize_t, ), number*sizeof(T))
+end
+
+function free(object::T) where T
+    ccall(glibc(:free), Nothing, (T, ), object)
+end
+
 function read_xml_file(filename::String)
     file = open(filename)
     s = "<root>\n" * read(file, String) * "</root>"
@@ -126,15 +138,14 @@ function submatrix(res::Singular.sresolution, R::Singular.PolyRing, g::Int,
         char::Entry_t)
     check_ordering(R)
     prym_green_size, limit = betti_table_entries(res, g)
-    values_ptr = ccall((:malloc, "libc"), Ptr{Ptr{Entry_t}}, (Csize_t, ),
-            sizeof(Ptr{Entry_t}))
+    values_ptr = malloc(Ptr{Entry_t})
     n_values = check_matrix(values_ptr, res.ptr, g, prym_green_size, limit,
         char, R.ptr)
     if n_values == 0
         error("number of values in Prym-Green matrix must be positive")
     end
     A = unsafe_wrap(Array, unsafe_load(values_ptr), (n_values, ), true)
-    ccall((:free, "libc"), Nothing, (Ptr{Ptr{Entry_t}}, ), values_ptr)
+    free(values_ptr)
     A, prym_green_size
 end
 
@@ -147,25 +158,23 @@ end
 function multiply_matrix(A::Array{Arith_t, 1}, v::Array{Arith_t, 1}, g::Int,
         char::Entry_t)
     char = Arith_t(char)
-    Axv_ptr = ccall((:malloc, "libc"), Ptr{Ptr{Arith_t}}, (Csize_t, ),
-            sizeof(Ptr{Arith_t}))
+    Axv_ptr = malloc(Ptr{Arith_t})
     length_Axv = ccall((:multiply_matrix, "libprymgreen"), Msize_t,
             (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Ptr{Arith_t}, Int, Arith_t),
             Axv_ptr, A, v, g, char)
     Axv = unsafe_wrap(Array, unsafe_load(Axv_ptr), (length_Axv, ), true)
-    ccall((:free, "libc"), Nothing, (Ptr{Ptr{Arith_t}}, ), Axv_ptr)
+    free(Axv_ptr)
     Axv
 end
 
 function dense_pg_matrix(res::Singular.sresolution, R::Singular.PolyRing,
         g::Int, prym_green_size::Msize_t, limit::Msize_t)
-    A_dense_ptr = ccall((:malloc, "libc"), Ptr{Ptr{Entry_t}}, (Csize_t, ),
-            prym_green_size*sizeof(Ptr{Entry_t}))
+    A_dense_ptr = malloc(Ptr{Entry_t}, prym_green_size)
     size_A = dense_matrix(A_dense_ptr, res.ptr, g, prym_green_size, limit,
             R.ptr);
     A_dense = unsafe_wrap(Array, unsafe_load(A_dense_ptr), (size_A, size_A),
             true)
-    ccall((:free, "libc"), Nothing, (Ptr{Ptr{Entry_t}}, ), A_dense_ptr)
+    free(A_dense_ptr)
     A_dense
 end
 
@@ -221,26 +230,24 @@ function recurrence_sequence(A::Array{Entry_t, 1}, prym_green_size::Msize_t,
     char = Arith_t(char)
     v = Array{Arith_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
     index = Msize_t(rand(rng, 0:(prym_green_size-1)))
-    seq_ptr = ccall((:malloc, "libc"), Ptr{Ptr{Arith_t}}, (Csize_t, ),
-            sizeof(Ptr{Arith_t}))
+    seq_ptr = malloc(Ptr{Arith_t})
     length_seq = ccall((:recurrence_sequence, "libprymgreen"), Msize_t,
             (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Nvals_t, Ptr{Arith_t}, Msize_t,
                 Msize_t, Int, Arith_t),
             seq_ptr, A, size(A, 1), v, prym_green_size, index, g, char)
     seq = unsafe_wrap(Array, unsafe_load(seq_ptr), (length_seq, ), true)
-    ccall((:free, "libc"), Nothing, (Ptr{Ptr{Arith_t}}, ), seq_ptr)
+    free(seq_ptr)
     seq
 end
 
 function berlekamp_massey(S::Array{Arith_t, 1}, char::Entry_t)
     char = Arith_t(char)
-    lfsr_ptr = ccall((:malloc, "libc"), Ptr{Ptr{Arith_t}}, (Csize_t, ),
-            sizeof(Ptr{Arith_t}))
+    lfsr_ptr = malloc(Ptr{Arith_t})
     length_lfsr = ccall((:berlekamp_massey, "libprymgreen"), Msize_t,
             (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Msize_t, Arith_t),
             lfsr_ptr, S, size(S, 1), char)
     lfsr = unsafe_wrap(Array, unsafe_load(lfsr_ptr), (length_lfsr, ), true)
-    ccall((:free, "libc"), Nothing, (Ptr{Ptr{Arith_t}}, ), lfsr_ptr)
+    free(lfsr_ptr)
     lfsr
 end
 
