@@ -3,6 +3,8 @@ import Nemo
 import Random
 import Singular
 
+export random_PCNC
+
 #=
 Check that n is the multiplicative order of z, given that z^n = 1.
 =#
