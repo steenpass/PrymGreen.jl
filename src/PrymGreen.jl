@@ -31,6 +31,10 @@ global const Arith_t = typeof(return_arith_t())
 include("singular_tools.jl")
 include("generate_random_pcnc.jl")
 
+macro time_info(ex)
+    return :($(esc(:(print_info))) ? $(esc(:(@time $ex))) : $(esc(ex)))
+end
+
 function glibc(S::Symbol)
     return Libdl.dlsym(Libdl.dlopen("libc.so.6"), S)
 end
@@ -282,17 +286,17 @@ function run_example(filename::String; print_info::Bool = false)
     R, I = set_degree_bound(R, I, 3)
     I.isGB = true
     GC.gc()
-    @time res = PrymGreen.fres(I, div(g, 2)-2, "single module";
+    @time_info res = PrymGreen.fres(I, div(g, 2)-2, "single module";
             use_cache = false, use_tensor_trick = true)
-    @time A, prym_green_size = submatrix(res, R, g, char)
+    @time_info A, prym_green_size = submatrix(res, R, g, char)
     print_info && print_matrix_info(A, prym_green_size)
     rng = init_rng()
     check_multiplication(A, res, R, g, char, rng)
     res = nothing
     GC.gc()
-    @time S = recurrence_sequence(A, prym_green_size, g, char, rng)
+    @time_info S = recurrence_sequence(A, prym_green_size, g, char, rng)
     print_info && println("S[1:4]   = ", map(x -> Int(x), S[1:4]))
-    @time C = PrymGreen.berlekamp_massey(S, char)
+    @time_info C = PrymGreen.berlekamp_massey(S, char)
     print_info && println("C[1:4]   = ", map(x -> Int(x), C[1:4]))
     check_berlekamp_massey(C, S, char)
     return nothing
