@@ -208,7 +208,8 @@ function gauss(A_dense::Array{Entry_t, 2}, char::Entry_t)
 end
 
 function check_multiplication(A::Array{Entry_t, 1}, res::Singular.sresolution,
-        R::Singular.PolyRing, g::Int, char::Entry_t, rng::Random.AbstractRNG)
+        R::Singular.PolyRing, g::Int, char::Entry_t, rng::Random.AbstractRNG,
+        print_info::Bool = false)
     g > 18 && return
     prym_green_size, limit = betti_table_entries(res, g)
     A = Array{Arith_t, 1}(A)
@@ -218,11 +219,13 @@ function check_multiplication(A::Array{Entry_t, 1}, res::Singular.sresolution,
     A_dense = Array{UInt128, 2}(A_dense)
     # gauss(A_dense, char)
     # write_dense_matrix(A_dense, g, char)
-    print("mlt. test: ")
+    print_info && print("mlt. test: ")
     if Axv == A_dense*v .% char
-        printstyled("passed\n"; color = :green)
+        print_info && printstyled("passed\n"; color = :green)
+        return true
     else
-        printstyled("failed\n"; bold = true, color = :red)
+        print_info && printstyled("failed\n"; bold = true, color = :red)
+        return false
     end
 end
 
@@ -263,20 +266,23 @@ function berlekamp_massey(S::Array{Arith_t, 1}, char::Entry_t)
 end
 
 function check_berlekamp_massey(C::Array{Arith_t, 1}, S::Array{Arith_t, 1},
-        char::Entry_t)
+        char::Entry_t, print_info::Bool = false)
     R = Nemo.NmodRing(UInt64(char))
     Sp = [ R(i) for i in S ]
     f = Hecke.berlekamp_massey(Sp)
     C_check = [ Arith_t(Nemo.coeff(f, i).data) for i in Nemo.degree(f):-1:0 ]
-    print("B-M. test: ")
+    print_info && print("B-M. test: ")
     if C == C_check
-        printstyled("passed\n"; color = :green)
+        print_info && printstyled("passed\n"; color = :green)
+        return true
     else
-        printstyled("failed\n"; bold = true, color = :red)
+        print_info && printstyled("failed\n"; bold = true, color = :red)
+        return false
     end
 end
 
 function run_example(filename::String; print_info::Bool = false)
+    success = true
     R, I, key = load_example(filename)
     print_info && println(key)
     g = parse(Int, match(r"(?<=g)(.*)(?=_)", key).match)
@@ -291,15 +297,15 @@ function run_example(filename::String; print_info::Bool = false)
     @time_info A, prym_green_size = submatrix(res, R, g, char)
     print_info && print_matrix_info(A, prym_green_size)
     rng = init_rng()
-    check_multiplication(A, res, R, g, char, rng)
+    success &= check_multiplication(A, res, R, g, char, rng, print_info)
     res = nothing
     GC.gc()
     @time_info S = recurrence_sequence(A, prym_green_size, g, char, rng)
     print_info && println("S[1:4]   = ", map(x -> Int(x), S[1:4]))
     @time_info C = PrymGreen.berlekamp_massey(S, char)
     print_info && println("C[1:4]   = ", map(x -> Int(x), C[1:4]))
-    check_berlekamp_massey(C, S, char)
-    return nothing
+    success &= check_berlekamp_massey(C, S, char, print_info)
+    return success
 end
 
 function check_prym_green_conjecture()
