@@ -17,7 +17,5 @@ std::tuple<void *, int> id_fres(ideal I, int n, std::string method,
         bool use_cache, bool use_tensor_trick, ring R);
 std::string rOrdStr_wrapper(ring r);
 long Singular_MaxBytesSystem();
-poly p_SubstPoly_wrapper(poly p, int var, poly image, const ring preimage_r,
-        const ring image_r);
 
 #endif   // SINGULAR_TOOLS_H

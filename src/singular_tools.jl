@@ -28,27 +28,18 @@ function fres(id::Singular.sideal{T}, max_length::Int,
 end
 
 #=
-Apply the map x -> z to p where x is assumed to be a variable.
-=#
-function substitute_variable(p::Singular.spoly{T}, x::Singular.spoly{T},
-        z::Singular.spoly{T}) where T <: AbstractAlgebra.RingElem
-    R = Singular.parent(p)
-    all(a -> Singular.parent(a) === R, [x, z]) || error("incompatible rings")
-    index_var = findfirst(isequal(x), Singular.gens(R))
-    index_var != nothing || error("x is not a variable")
-    res_ptr = p_SubstPoly(p.ptr, index_var, z.ptr, R.ptr, R.ptr);
-    return R(res_ptr)
-end
-
-#=
 Successively apply the maps X[i] -> Z[i] to p where the X[i] are assumed to be
 variables.
 =#
 function poly_substitute(p::Singular.spoly{T}, X::Array{Singular.spoly{T}, 1},
         Z::Array{Singular.spoly{T}, 1}) where T <: AbstractAlgebra.RingElem
     length(X) == length(Z) || error("incompatible lengths")
+    R = Singular.parent(p)
+    all(a -> Singular.parent(a) === R, X) || error("incompatible rings")
     for i in 1:length(X)
-        p = substitute_variable(p, X[i], Z[i])
+        index_var = findfirst(isequal(X[i]), Singular.gens(R))
+        index_var != nothing || error("i-th element is not a variable")
+        p = Singular.substitute_variable(p, index_var, Z[i])
     end
     return p
 end
