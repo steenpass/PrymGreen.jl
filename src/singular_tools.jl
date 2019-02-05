@@ -63,5 +63,3 @@ function unwrap(n::AbstractAlgebra.RingElem)
     end
     return n
 end
-
-Broadcast.broadcastable(n::AbstractAlgebra.RingElem) = Ref(n)
