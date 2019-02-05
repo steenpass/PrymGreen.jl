@@ -13,7 +13,7 @@ function fres(id::Singular.sideal{T}, max_length::Int,
     max_length < 0 && error("length for fres must not be negative")
     R = Singular.base_ring(id)
     if max_length == 0
-        max_length = Singular.ngens(R)+1
+        max_length = Singular.nvars(R)+1
         # TODO: consider qrings
     end
     if (method != "complete"

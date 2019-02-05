@@ -111,7 +111,7 @@ function set_degree_bound(R::Singular.PolyRing, I::Singular.sideal, d::Int)
     if size(B, 1) > d
         error("degree bound possibly too low to compute free resolution")
     end
-    vars = [ string(Singular.gens(R)[i]) for i in 1:Singular.ngens(R) ]
+    vars = [ string(Singular.gens(R)[i]) for i in 1:Singular.nvars(R) ]
     global X
     S, X = Singular.PolynomialRing(Singular.base_ring(R), vars;
             degree_bound = d, ordering = :degrevlex, ordering2 = :comp1max)
