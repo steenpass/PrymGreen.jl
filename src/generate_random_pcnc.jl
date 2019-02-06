@@ -114,7 +114,7 @@ function canonical_multipliers(P::Array{T, 2}, Q::Array{T, 2}) where
     sections = [ prod(quadrics[1:g .!= i]) for i in 1:g ]
     AP = [ poly_substitute(sections[i], [x_0, x_1], S.(P[:, i])) for i = 1:g ]'
     AQ = [ poly_substitute(sections[i], [x_0, x_1], S.(Q[:, i])) for i = 1:g ]'
-    A = Singular.coeff.(vcat(AP, AQ), 0)
+    A = (x -> first(Singular.coeffs(x))).(vcat(AP, AQ))
     return unwrap.(A)
 end
 
