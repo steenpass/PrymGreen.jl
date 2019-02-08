@@ -7,9 +7,10 @@ SINGULAR_DIR=/usr/local
 
 absolute_path() {
     dir="$1"
-    if [[ $dir != /* ]]; then
-        dir=$PWD/$dir
-    fi
+    case $dir in
+        /*) dir=$dir;;
+        *) dir=$PWD/$dir;;
+    esac
     echo $dir
 }
 
