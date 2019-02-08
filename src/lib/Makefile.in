@@ -36,7 +36,7 @@ $(OBJECTS_CXX): %.o: %.cc
 
 $(LIBNAME): $(OBJECTS)
 	@echo "  CCLD    $@"
-	$(Q)$(CC) -shared -fPIC $(LINKING_OPTIONS) -o $(LIBNAME) $(OBJECTS)
+	$(Q)$(CC) -shared -fPIC $(OBJECTS) $(LINKING_OPTIONS) -o $(LIBNAME)
 
 install: $(LIBNAME)
 	$(Q)mkdir -p $(PREFIX)/include
