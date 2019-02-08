@@ -65,7 +65,15 @@ if [ -z "$CXX" ]; then
 fi
 
 if [ -z "$CXXFLAGS" ]; then
-    CXXFLAGS="-fPIC -Wall"
+    echo "int main() { return __cplusplus >= 201402L ? 0 : 1; }" \
+        | g++ -x c++ -o check_c++_standard -
+    ./check_c++_standard
+    ccstd=$?
+    rm check_c++_standard
+    if [ "$ccstd" -ne "0" ]; then
+        CXXFLAGS="-std=c++14"
+    fi
+    CXXFLAGS="$CXXFLAGS -fPIC -Wall"
 fi
 
 echo -n "" > Makefile
