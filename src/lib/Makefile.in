@@ -28,15 +28,15 @@ all: $(LIBNAME)
 
 $(OBJECTS_C): %.o: %.c
 	@echo "  CC      $@"
-	$(Q)$(CC) -c $(CFLAGS) $(C_INCLUDE) -o$@ $<
+	$(Q)$(CC) -c $(CFLAGS) $(C_INCLUDE) -o $@ $<
 
 $(OBJECTS_CXX): %.o: %.cc
 	@echo "  CXX     $@"
-	$(Q)$(CXX) -c $(CXXFLAGS) $(CXX_MACROS) $(CXX_INCLUDE) -o$@ $<
+	$(Q)$(CXX) -c $(CXXFLAGS) $(CXX_MACROS) $(CXX_INCLUDE) -o $@ $<
 
 $(LIBNAME): $(OBJECTS)
 	@echo "  CCLD    $@"
-	$(Q)$(CC) -shared -fPIC $(LINKING_OPTIONS) -o$(LIBNAME) $(OBJECTS)
+	$(Q)$(CC) -shared -fPIC $(LINKING_OPTIONS) -o $(LIBNAME) $(OBJECTS)
 
 install: $(LIBNAME)
 	$(Q)mkdir -p $(PREFIX)/include
