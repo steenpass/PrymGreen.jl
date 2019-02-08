@@ -1,0 +1,27 @@
+os: linux
+dist: xenial
+language: julia
+julia: 1.0
+notifications:
+    email: true
+
+script:
+    - while sleep 60; do echo "still alive"; done &
+    - julia -e '
+          using Pkg;
+          abstractalgebra_url
+                  = "https://github.com/Nemocas/AbstractAlgebra.jl";
+          Pkg.add(PackageSpec(url = abstractalgebra_url));
+          nemo_url = "https://github.com/Nemocas/Nemo.jl";
+          Pkg.add(PackageSpec(url = nemo_url));
+          hecke_url = "https://github.com/thofma/Hecke.jl";
+          Pkg.add(PackageSpec(url = hecke_url));
+          singular_url = "https://github.com/oscar-system/Singular.jl";
+          Pkg.add(PackageSpec(url = singular_url));
+      '
+    - kill %%
+    - julia -e '
+          using Pkg;
+          Pkg.add(PackageSpec(path = pwd()));
+          Pkg.test("PrymGreen"; coverage = true);
+      '
