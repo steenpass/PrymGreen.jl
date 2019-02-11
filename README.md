@@ -10,8 +10,10 @@ To build PrymGreen.jl, start Julia and then type:
 
 ```julia
 julia> using Pkg
-julia> Pkg.clone("https://github.com/steenpass/PrymGreen.jl")
-julia> Pkg.build("PrymGreen")
+julia> singular_url = "https://github.com/oscar-system/Singular.jl"
+julia> Pkg.add(PackageSpec(url = singular_url))
+julia> prymgreen_url = "https://github.com/steenpass/PrymGreen.jl"
+julia> Pkg.add(PackageSpec(url = prymgreen_url))
 ```
 To use PrymGreen.jl, start Julia and then type:
 ```julia
