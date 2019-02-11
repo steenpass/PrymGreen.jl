@@ -7,7 +7,7 @@ notifications:
 
 script:
     - while sleep 60; do echo "still alive"; done &
-    - julia -e '
+    - julia --color=yes -e '
           using Pkg;
           abstractalgebra_url
                   = "https://github.com/Nemocas/AbstractAlgebra.jl";
@@ -20,16 +20,18 @@ script:
           Pkg.add(PackageSpec(url = singular_url));
       '
     - kill %%
-    - julia -e '
+    - julia --color=yes -e '
           using Pkg;
           Pkg.add(PackageSpec(path = pwd()));
           Pkg.test("PrymGreen"; coverage = true);
       '
-    - julia -e '
+
+after_success:
+    - julia --color=yes -e '
+          using Pkg;
           cd(Pkg.dir("PrymGreen"));
           Pkg.add("Coverage");
           using Coverage;
           Coveralls.submit(Coveralls.process_folder());
+          Codecov.submit(Codecov.process_folder());
       '
-#  - julia -e 'cd(Pkg.dir("PrymGreen")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
-
