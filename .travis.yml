@@ -25,3 +25,11 @@ script:
           Pkg.add(PackageSpec(path = pwd()));
           Pkg.test("PrymGreen"; coverage = true);
       '
+    - julia -e '
+          cd(Pkg.dir("PrymGreen"));
+          Pkg.add("Coverage");
+          using Coverage;
+          Coveralls.submit(Coveralls.process_folder());
+      '
+#  - julia -e 'cd(Pkg.dir("PrymGreen")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+
