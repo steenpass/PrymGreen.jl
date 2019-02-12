@@ -24,7 +24,8 @@ LINK_JULIA=-L$(JULIA_DIR)/lib -Wl,-rpath,$(JULIA_DIR)/lib -ljulia
 LINK_SINGULAR=-L$(SINGULAR_DIR)/lib -Wl,-rpath,$(SINGULAR_DIR)/lib -lSingular
 LINK_SINGULAR+=-lfactory -lomalloc -lpolys -lsingular_resources
 
-LINKING_OPTIONS=$(LINK_CXXWRAP) $(LINK_FLINT) $(LINK_JULIA) $(LINK_SINGULAR)
+LINKING_OPTIONS=-lstdc++
+LINKING_OPTIONS+=$(LINK_CXXWRAP) $(LINK_FLINT) $(LINK_JULIA) $(LINK_SINGULAR)
 
 all: $(LIBNAME)
 

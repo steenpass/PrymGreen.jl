@@ -37,7 +37,7 @@ after_success:
           cd(realpath(joinpath(dirname(pathof(PrymGreen)), "..")));
           @info "temporary workaround for\n"
           * "https://github.com/JuliaWeb/MbedTLS.jl/issues/193";
-          Pkg.add("MbedTLS@0.6.6");
+          Pkg.add(PackageSpec(name = "MbedTLS", version = "0.6.6"));
           Pkg.add("Coverage");
           using Coverage;
           Coveralls.submit(Coveralls.process_folder());

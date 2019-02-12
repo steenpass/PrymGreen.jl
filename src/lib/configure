@@ -76,7 +76,7 @@ if [ -z "$CXXFLAGS" ]; then
     CXXFLAGS="$CXXFLAGS -fPIC -Wall"
 fi
 
-echo -n "" > Makefile
+cp /dev/null Makefile
 echo "CC=$CC" >> Makefile
 echo "CFLAGS=$CFLAGS" >> Makefile
 echo "CXX=$CXX" >> Makefile

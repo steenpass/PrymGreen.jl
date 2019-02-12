@@ -1,6 +1,7 @@
 #ifndef SINGULAR_TOOLS_H
 #define SINGULAR_TOOLS_H
 
+#include <string>
 #include <tuple>
 
 #pragma GCC diagnostic push
