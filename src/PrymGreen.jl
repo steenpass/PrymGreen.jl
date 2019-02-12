@@ -14,7 +14,7 @@ export run_example, check_prym_green_conjecture
 const pkgdir = realpath(joinpath(@__DIR__, ".."))
 const libdir = realpath(joinpath(pkgdir, "local", "lib"))
 
-CxxWrap.@wrapmodule(realpath(joinpath(libdir, "libprymgreen." * Libdl.dlext)))
+CxxWrap.@wrapmodule(realpath(joinpath(libdir, "libprymgreen.so")))
 
 function __init__()
     ldir = joinpath(pkgdir, "local", "lib")
