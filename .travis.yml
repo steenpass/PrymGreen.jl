@@ -1,9 +1,13 @@
-os: linux
 dist: xenial
 language: julia
 julia: 1.0
 notifications:
     email: true
+
+matrix:
+    include:
+        - os: linux
+        - os: osx
 
 script:
     - while sleep 60; do echo "still alive"; done &
