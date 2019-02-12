@@ -35,8 +35,8 @@ after_success:
           using Pkg;
           import PrymGreen;
           cd(realpath(joinpath(dirname(pathof(PrymGreen)), "..")));
-          # temporary workaround for
-          # https://github.com/JuliaWeb/MbedTLS.jl/issues/193
+          @info "temporary workaround for\n"
+          * "https://github.com/JuliaWeb/MbedTLS.jl/issues/193";
           Pkg.add("MbedTLS@0.6.6");
           Pkg.add("Coverage");
           using Coverage;
