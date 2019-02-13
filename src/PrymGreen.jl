@@ -2,6 +2,7 @@ module PrymGreen
 
 import AbstractAlgebra
 import CxxWrap
+import DelimitedFiles
 import Hecke
 import Libdl
 import LightXML
@@ -191,6 +192,13 @@ function dense_pg_matrix(res::Singular.sresolution, R::Singular.PolyRing,
     return A_dense
 end
 
+function gauss(A_dense::Array{Entry_t, 2}, char::Entry_t)
+    @time rank = ccall((:gauss, "libprymgreen.so"), Msize_t,
+            (Ptr{Entry_t}, Msize_t, Msize_t, Entry_t),
+            A_dense, size(A_dense, 1), size(A_dense, 2), char)
+    println("rank:      ", rank)
+end
+
 function write_dense_matrix(A_dense::Array{Entry_t, 2}, g::Int, char::Entry_t)
     file = "pcnc_g"*string(g)*"_submatrix_"*string(size(A_dense, 1))
     if isfile(file)
@@ -200,15 +208,8 @@ function write_dense_matrix(A_dense::Array{Entry_t, 2}, g::Int, char::Entry_t)
     write(f, string(char)*"\n")
     write(f, string(size(A_dense, 1))*" "*string(size(A_dense, 2))*"\n")
     A_print = Array{Int, 2}(A_dense)
-    writedlm(f, A_print, ' ')
+    DelimitedFiles.writedlm(f, A_print, ' ')
     close(f)
-end
-
-function gauss(A_dense::Array{Entry_t, 2}, char::Entry_t)
-    @time rank = ccall((:gauss, "libprymgreen.so"), Msize_t,
-            (Ptr{Entry_t}, Msize_t, Msize_t, Entry_t),
-            A_dense, size(A_dense, 1), size(A_dense, 2), char)
-    println("rank:      ", rank)
 end
 
 function check_multiplication(A::Array{Entry_t, 1}, res::Singular.sresolution,
@@ -220,9 +221,9 @@ function check_multiplication(A::Array{Entry_t, 1}, res::Singular.sresolution,
     v = Array{Arith_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
     Axv = multiply_matrix(A, v, g, char)
     A_dense = dense_pg_matrix(res, R, g, prym_green_size, limit)
+    g <= 12 && gauss(A_dense, char)
+    g <= 12 && write_dense_matrix(A_dense, g, char)
     A_dense = Array{UInt128, 2}(A_dense)
-    # gauss(A_dense, char)
-    # write_dense_matrix(A_dense, g, char)
     print_info && print("mlt. test: ")
     if Axv == A_dense*v .% char
         print_info && printstyled("passed\n"; color = :green)
