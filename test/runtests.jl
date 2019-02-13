@@ -11,6 +11,8 @@ checksum *= filename * "\n"
 @test read(`sha256sum $filename`, String) == checksum
 rm(filename)
 
-s1 = string(PrymGreen.random_PCNC(8, 2, Random.MersenneTwister(0))) * "\n"
+s1 = string(random_PCNC(8, 2, Random.MersenneTwister(0))) * "\n"
 s2 = read(open("./data/random_PCNC", "r"), String)
 @test s1 == s2
+
+@test test_modular_arithmetic() == 6

@@ -10,7 +10,7 @@ import Nemo
 import Random
 import Singular
 
-export run_example, check_prym_green_conjecture
+export run_example, test_modular_arithmetic
 
 const pkgdir = realpath(joinpath(@__DIR__, ".."))
 const libdir = realpath(joinpath(pkgdir, "local", "lib"))
@@ -313,10 +313,10 @@ function run_example(filename::String; print_info::Bool = false)
     return success
 end
 
-function check_prym_green_conjecture()
+function test_modular_arithmetic()
     @time res = ccall((:mult_preinv_test, "libprymgreen.so"), UInt64,
         (UInt64, UInt64, UInt64, Int64),
-        3, 11, 27, 10000000000)
+        3, 11, 27, 100000000)
     return res
 end
 
