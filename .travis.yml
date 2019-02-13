@@ -27,6 +27,8 @@ script:
     - julia --color=yes -e '
           using Pkg;
           Pkg.add(PackageSpec(path = pwd()));
+          Pkg.test("PrymGreen");
+          Pkg.test("PrymGreen"; coverage = true);
           Pkg.test("PrymGreen"; coverage = true);
       '
 
