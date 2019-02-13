@@ -36,7 +36,11 @@ macro time_info(ex)
 end
 
 function glibc(S::Symbol)
-    return Libdl.dlsym(Libdl.dlopen("libc.so.6"), S)
+    libname = "libc.so.6"
+    @static if Sys.isapple()
+        libname = "libSystem"
+    end
+    return Libdl.dlsym(Libdl.dlopen(libname), S)
 end
 
 function malloc(::Type{T}, number::Unsigned = UInt(1)) where T
@@ -167,7 +171,7 @@ function multiply_matrix(A::Array{Arith_t, 1}, v::Array{Arith_t, 1}, g::Int,
         char::Entry_t)
     char = Arith_t(char)
     Axv_ptr = malloc(Ptr{Arith_t})
-    length_Axv = ccall((:multiply_matrix, "libprymgreen"), Msize_t,
+    length_Axv = ccall((:multiply_matrix, "libprymgreen.so"), Msize_t,
             (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Ptr{Arith_t}, Int, Arith_t),
             Axv_ptr, A, v, g, char)
     Axv = unsafe_wrap(Array{Arith_t, 1}, unsafe_load(Axv_ptr), (length_Axv, );
@@ -201,7 +205,7 @@ function write_dense_matrix(A_dense::Array{Entry_t, 2}, g::Int, char::Entry_t)
 end
 
 function gauss(A_dense::Array{Entry_t, 2}, char::Entry_t)
-    @time rank = ccall((:gauss, "libprymgreen"), Msize_t,
+    @time rank = ccall((:gauss, "libprymgreen.so"), Msize_t,
             (Ptr{Entry_t}, Msize_t, Msize_t, Entry_t),
             A_dense, size(A_dense, 1), size(A_dense, 2), char)
     println("rank:      ", rank)
@@ -243,7 +247,7 @@ function recurrence_sequence(A::Array{Entry_t, 1}, prym_green_size::Msize_t,
     v = Array{Arith_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
     index = Msize_t(rand(rng, 0:(prym_green_size-1)))
     seq_ptr = malloc(Ptr{Arith_t})
-    length_seq = ccall((:recurrence_sequence, "libprymgreen"), Msize_t,
+    length_seq = ccall((:recurrence_sequence, "libprymgreen.so"), Msize_t,
             (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Nvals_t, Ptr{Arith_t}, Msize_t,
                 Msize_t, Int, Arith_t),
             seq_ptr, A, size(A, 1), v, prym_green_size, index, g, char)
@@ -256,7 +260,7 @@ end
 function berlekamp_massey(S::Array{Arith_t, 1}, char::Entry_t)
     char = Arith_t(char)
     lfsr_ptr = malloc(Ptr{Arith_t})
-    length_lfsr = ccall((:berlekamp_massey, "libprymgreen"), Msize_t,
+    length_lfsr = ccall((:berlekamp_massey, "libprymgreen.so"), Msize_t,
             (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Msize_t, Arith_t),
             lfsr_ptr, S, size(S, 1), char)
     lfsr = unsafe_wrap(Array{Arith_t, 1}, unsafe_load(lfsr_ptr),
@@ -309,7 +313,7 @@ function run_example(filename::String; print_info::Bool = false)
 end
 
 function check_prym_green_conjecture()
-    @time res = ccall((:mult_preinv_test, "libprymgreen"), UInt64,
+    @time res = ccall((:mult_preinv_test, "libprymgreen.so"), UInt64,
         (UInt64, UInt64, UInt64, Int64),
         3, 11, 27, 10000000000)
     return res
