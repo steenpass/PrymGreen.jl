@@ -8,7 +8,9 @@ using Test
 filename = "pcnc_g12_submatrix_399"
 checksum = "3b823f6d15e78a31f6e8cc047de45c07645c85edaf50203c4485e0de9d8f8bed  "
 checksum *= filename * "\n"
-@test read(`sha256sum $filename`, String) == checksum
+command = `sha256sum $filename`
+Sys.isapple() && (command = `shasum -a 256 $filename`)
+@test read(command, String) == checksum
 rm(filename)
 
 s1 = string(random_PCNC(8, 2, Random.MersenneTwister(0))) * "\n"
