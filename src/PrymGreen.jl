@@ -87,7 +87,7 @@ function resort(I::Singular.sideal, R::Singular.PolyRing)
     J = Singular.Ideal(R, [ R() for i in 1:Singular.ngens(I) ]...)
     i = 1
     for j = 1:Singular.ngens(I)
-        if Singular.degree(I[j]) != Singular.degree(I[i])
+        if Singular.total_degree(I[j]) != Singular.total_degree(I[i])
             for k = (j-1):-1:i
                 J[i+j-1-k] = I[k]
             end
@@ -106,7 +106,7 @@ available in Singular.jl.
 =#
 function set_degree_bound(R::Singular.PolyRing, I::Singular.sideal, d::Int)
     for i in 1:Singular.ngens(I)
-        if Singular.degree(I[i]) > d
+        if Singular.total_degree(I[i]) > d
             error("degree bound too low")
         end
     end
