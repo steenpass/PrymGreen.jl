@@ -10,7 +10,7 @@ import Nemo
 import Random
 import Singular
 
-export run_example, test_modular_arithmetic
+export load_example, run_example, test_modular_arithmetic
 
 const pkgdir = realpath(joinpath(@__DIR__, ".."))
 const libdir = realpath(joinpath(pkgdir, "local", "lib"))
@@ -293,9 +293,9 @@ function check_berlekamp_massey(C::Array{Arith_t, 1}, S::Array{Arith_t, 1},
     end
 end
 
-function run_example(filename::String; print_info::Bool = false)
+function run_example(R::Singular.PolyRing, I::Singular.sideal, g::Int,
+        char::Entry_t; print_info::Bool = false)
     success = true
-    R, I, g, char = load_example(filename, print_info)
     R, I = set_degree_bound(R, I, 3)
     GC.gc()
     @time_info res = PrymGreen.fres(I, div(g, 2)-2, "single module";
