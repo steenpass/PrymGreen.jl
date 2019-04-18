@@ -316,23 +316,20 @@ end
 
 function run_example(R::Singular.PolyRing, I::Singular.sideal, g::Int,
         char::Entry_t; print_info::Bool = false)
-    success = true
     R, I = set_degree_bound(R, I, 3)
     GC.gc()
     @time_info res = PrymGreen.fres(I, div(g, 2)-2, "single module";
             use_cache = false, use_tensor_trick = true)
     @time_info A, prym_green_size = submatrix(res, R, g, char)
-    print_info && print_matrix_info(A, prym_green_size)
-    rng = init_rng()
-    success &= check_multiplication(A, res, R, g, char, rng, print_info)
     res = nothing
     GC.gc()
+    print_info && print_matrix_info(A, prym_green_size)
+    rng = init_rng()
     @time_info S = recurrence_sequence(A, prym_green_size, g, char, rng)
     print_info && println("S[1:4]   = ", map(x -> Int(x), S[1:4]))
     @time_info C = PrymGreen.berlekamp_massey(S, char)
     print_info && println("C[1:4]   = ", map(x -> Int(x), C[1:4]))
-    success &= check_berlekamp_massey(C, S, char, print_info)
-    return success
+    return nothing
 end
 
 function test_modular_arithmetic()
