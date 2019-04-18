@@ -135,10 +135,30 @@ function linear_series_from_multipliers(P::Array{T, 2}, Q::Array{T, 2},
     MP = [ A[2, i]*poly_substitute(B[j], X, S.(P[:, i])) for i = 1:g, j = 1:d ]
     MQ = [ A[1, i]*poly_substitute(B[j], X, S.(Q[:, i])) for i = 1:g, j = 1:d ]
     sy = Singular.syz(Module(MP-MQ))
+    sy = Singular.std(sy)
     l = Singular.ngens(sy)
     gens = [ sum([ B[j] for j = 1:d ] .* Array(sy[i])) for i = 1:l ]
     map = Singular.Ideal(S, gens)
     return map
+end
+
+function rev_dp(a::Singular.spoly{T}, b::Singular.spoly{T}) where
+        T <: AbstractAlgebra.RingElem
+    deg_a = Singular.total_degree(a)
+    deg_b = Singular.total_degree(b)
+    if (deg_a == deg_b)
+        R = Singular.parent(a)
+        return (p_LmCmp(a.ptr, b.ptr, R.ptr) == 1)
+    end
+    return (deg_a < deg_b)
+end
+
+function resort(I::Singular.sideal{T}) where T <: AbstractAlgebra.RingElem
+    R = Singular.base_ring(I)
+    gens = [ I[i] for i = 1:Singular.ngens(I) ]
+    J = Singular.Ideal(R, sort!(gens; lt=rev_dp))
+    J.isGB = I.isGB
+    return J
 end
 
 #=
@@ -156,5 +176,7 @@ function random_PCNC(g::Int, l::Int, rng::Random.AbstractRNG)
     @assert n == g-1
     T, = Singular.PolynomialRing(R, [ "t_$i" for i = 0:(n-1) ])
     K = Singular.kernel(T, s)
+    K = Singular.std(K)
+    K = resort(K)
     return K
 end
