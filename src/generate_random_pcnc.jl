@@ -157,7 +157,7 @@ function random_PCNC(g::Int, l::Int, rng::Random.AbstractRNG)
     @assert n == g-1
     T, = Singular.PolynomialRing(R, [ "t_$i" for i = 0:(n-1) ])
     K = Singular.kernel(T, s)
-    K = Singular.std(K)
+    K = Singular.std(K; complete_reduction = true)
     K = resort(K)
     return K
 end

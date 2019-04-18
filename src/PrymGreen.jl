@@ -81,6 +81,8 @@ function load_example(filename::String, print_info::Bool = false)
         eval(Meta.parse("$s = X[$i]"))
     end
     I = Singular.Ideal(R, [ eval(Meta.parse(s)) for s in basis ])
+    I = Singular.std(I; complete_reduction = true)
+    I = resort(I)
     g = parse(Int, match(r"(?<=g)(.*)(?=_)", key).match)
     char = parse(PrymGreen.Entry_t, match(r"(?<=@)(.*)(?=g)", key).match)
     return (R, I, g, char)
@@ -294,8 +296,6 @@ end
 function run_example(filename::String; print_info::Bool = false)
     success = true
     R, I, g, char = load_example(filename, print_info)
-    I = Singular.std(I; complete_reduction = true)
-    I = resort(I)
     R, I = set_degree_bound(R, I, 3)
     GC.gc()
     @time_info res = PrymGreen.fres(I, div(g, 2)-2, "single module";
