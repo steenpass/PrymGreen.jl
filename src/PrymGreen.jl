@@ -10,7 +10,7 @@ import Nemo
 import Random
 import Singular
 
-export load_example, run_example, test_modular_arithmetic
+export load_example, test_example, run_example, test_modular_arithmetic
 
 const pkgdir = realpath(joinpath(@__DIR__, ".."))
 const libdir = realpath(joinpath(pkgdir, "local", "lib"))
