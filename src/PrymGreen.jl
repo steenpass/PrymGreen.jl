@@ -245,7 +245,6 @@ function print_matrix_info(A::Array{Entry_t, 1}, prym_green_size::Msize_t)
     println("p_g_size = ", prym_green_size)
     println("n_values = ", size(A, 1))
     println("max bytes: ", Singular_MaxBytesSystem())
-    println("A[1:4]   = ", map(x -> Int(x), A[1:4]))
 end
 
 function recurrence_sequence(A::Array{Entry_t, 1}, prym_green_size::Msize_t,
@@ -302,6 +301,7 @@ function test_example(R::Singular.PolyRing, I::Singular.sideal, g::Int,
             use_cache = false, use_tensor_trick = true)
     @time_info A, prym_green_size = submatrix(res, R, g, char)
     print_info && print_matrix_info(A, prym_green_size)
+    print_info && println("A[1:4]   = ", map(x -> Int(x), A[1:4]))
     rng = init_rng()
     success &= check_multiplication(A, res, R, g, char, rng, print_info)
     res = nothing
@@ -325,9 +325,7 @@ function run_example(R::Singular.PolyRing, I::Singular.sideal, g::Int,
     GC.gc()
     print_info && print_matrix_info(A, prym_green_size)
     @time_info S = recurrence_sequence(A, prym_green_size, g, char, rng)
-    print_info && println("S[1:4]   = ", map(x -> Int(x), S[1:4]))
     @time_info C = PrymGreen.berlekamp_massey(S, char)
-    print_info && println("C[1:4]   = ", map(x -> Int(x), C[1:4]))
     return nothing
 end
 
