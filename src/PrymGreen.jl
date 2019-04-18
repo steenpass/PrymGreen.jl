@@ -115,7 +115,6 @@ function set_degree_bound(R::Singular.PolyRing, I::Singular.sideal, d::Int)
             error("degree bound too low")
         end
     end
-    I.isGB = true
     r = PrymGreen.fres(I, 0, "frame")
     B = Singular.betti(r)
     if size(B, 1) > d
@@ -130,6 +129,7 @@ function set_degree_bound(R::Singular.PolyRing, I::Singular.sideal, d::Int)
     end
     J = Singular.Ideal(S,
             [ eval(Meta.parse(string(I[i]))) for i in 1:Singular.ngens(I) ])
+    J.isGB = I.isGB
     return (S, J)
 end
 
@@ -297,7 +297,6 @@ function run_example(filename::String; print_info::Bool = false)
     I = Singular.std(I; complete_reduction = true)
     I = resort(I)
     R, I = set_degree_bound(R, I, 3)
-    I.isGB = true
     GC.gc()
     @time_info res = PrymGreen.fres(I, div(g, 2)-2, "single module";
             use_cache = false, use_tensor_trick = true)
