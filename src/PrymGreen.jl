@@ -326,6 +326,12 @@ function run_example(R::Singular.PolyRing, I::Singular.sideal, g::Int,
     print_info && print_matrix_info(A, prym_green_size)
     @time_info S = recurrence_sequence(A, prym_green_size, g, char, rng)
     @time_info C = PrymGreen.berlekamp_massey(S, char)
+    if C[end] == 0
+        return false
+    end
+    if size(C, 1)-1 == prym_green_size
+        return true
+    end
     return nothing
 end
 
