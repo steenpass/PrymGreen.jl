@@ -71,8 +71,9 @@ function read_xml_file(filename::String)
     return (key, char, vars, basis)
 end
 
-function load_example(filename::String)
+function load_example(filename::String, print_info::Bool = false)
     key, char, vars, basis = read_xml_file(filename)
+    print_info && println(key)
     global X
     R, X = Singular.PolynomialRing(Singular.Fp(Int(char)), vars;
             ordering = :degrevlex, ordering2 = :comp1max)
@@ -80,7 +81,9 @@ function load_example(filename::String)
         eval(Meta.parse("$s = X[$i]"))
     end
     I = Singular.Ideal(R, [ eval(Meta.parse(s)) for s in basis ])
-    return (R, I, key)
+    g = parse(Int, match(r"(?<=g)(.*)(?=_)", key).match)
+    char = parse(PrymGreen.Entry_t, match(r"(?<=@)(.*)(?=g)", key).match)
+    return (R, I, g, char)
 end
 
 function resort(I::Singular.sideal, R::Singular.PolyRing)
@@ -288,10 +291,7 @@ end
 
 function run_example(filename::String; print_info::Bool = false)
     success = true
-    R, I, key = load_example(filename)
-    print_info && println(key)
-    g = parse(Int, match(r"(?<=g)(.*)(?=_)", key).match)
-    char = parse(PrymGreen.Entry_t, match(r"(?<=@)(.*)(?=g)", key).match)
+    R, I, g, char = load_example(filename, print_info)
     I = Singular.std(I; complete_reduction = true)
     I = resort(I, R)
     R, I = set_degree_bound(R, I, 3)
