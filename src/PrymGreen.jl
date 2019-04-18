@@ -86,20 +86,22 @@ function load_example(filename::String, print_info::Bool = false)
     return (R, I, g, char)
 end
 
-function resort(I::Singular.sideal, R::Singular.PolyRing)
-    J = Singular.Ideal(R, [ R() for i in 1:Singular.ngens(I) ]...)
-    i = 1
-    for j = 1:Singular.ngens(I)
-        if Singular.total_degree(I[j]) != Singular.total_degree(I[i])
-            for k = (j-1):-1:i
-                J[i+j-1-k] = I[k]
-            end
-            i = j
-        end
+function rev_dp(a::Singular.spoly{T}, b::Singular.spoly{T}) where
+        T <: AbstractAlgebra.RingElem
+    deg_a = Singular.total_degree(a)
+    deg_b = Singular.total_degree(b)
+    if (deg_a == deg_b)
+        R = Singular.parent(a)
+        return (p_LmCmp(a.ptr, b.ptr, R.ptr) == 1)
     end
-    for k = Singular.ngens(I):-1:i
-        J[i+Singular.ngens(I)-k] = I[k]
-    end
+    return (deg_a < deg_b)
+end
+
+function resort(I::Singular.sideal{T}) where T <: AbstractAlgebra.RingElem
+    R = Singular.base_ring(I)
+    gens = [ I[i] for i = 1:Singular.ngens(I) ]
+    J = Singular.Ideal(R, sort!(gens; lt=rev_dp))
+    J.isGB = I.isGB
     return J
 end
 
@@ -293,7 +295,7 @@ function run_example(filename::String; print_info::Bool = false)
     success = true
     R, I, g, char = load_example(filename, print_info)
     I = Singular.std(I; complete_reduction = true)
-    I = resort(I, R)
+    I = resort(I)
     R, I = set_degree_bound(R, I, 3)
     I.isGB = true
     GC.gc()
