@@ -159,5 +159,6 @@ function random_PCNC(g::Int, l::Int, rng::Random.AbstractRNG)
     K = Singular.kernel(T, s)
     K = Singular.std(K; complete_reduction = true)
     K = resort(K)
-    return K
+    char = Entry_t(Int(Singular.characteristic(R)))
+    return (T, K, char, g)
 end
