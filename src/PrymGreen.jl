@@ -292,8 +292,8 @@ function check_berlekamp_massey(C::Array{Arith_t, 1}, S::Array{Arith_t, 1},
     end
 end
 
-function test_example(R::Singular.PolyRing, I::Singular.sideal, g::Int,
-        char::Entry_t; print_info::Bool = false)
+function test_example(R::Singular.PolyRing, I::Singular.sideal, char::Entry_t,
+        g::Int, rng::Random.AbstractRNG; print_info::Bool = false)
     success = true
     R, I = set_degree_bound(R, I, 3)
     GC.gc()
@@ -302,7 +302,6 @@ function test_example(R::Singular.PolyRing, I::Singular.sideal, g::Int,
     @time_info A, prym_green_size = submatrix(res, R, g, char)
     print_info && print_matrix_info(A, prym_green_size)
     print_info && println("A[1:4]   = ", map(x -> Int(x), A[1:4]))
-    rng = init_rng()
     success &= check_multiplication(A, res, R, g, char, rng, print_info)
     res = nothing
     GC.gc()
@@ -314,8 +313,8 @@ function test_example(R::Singular.PolyRing, I::Singular.sideal, g::Int,
     return success
 end
 
-function run_example(R::Singular.PolyRing, I::Singular.sideal, g::Int,
-        char::Entry_t, rng::Random.AbstractRNG; print_info::Bool = false)
+function run_example(R::Singular.PolyRing, I::Singular.sideal, char::Entry_t,
+        g::Int, rng::Random.AbstractRNG; print_info::Bool = false)
     R, I = set_degree_bound(R, I, 3)
     GC.gc()
     @time_info res = PrymGreen.fres(I, div(g, 2)-2, "single module";
