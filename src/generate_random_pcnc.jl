@@ -135,7 +135,7 @@ function linear_series_from_multipliers(P::Array{T, 2}, Q::Array{T, 2},
     MP = [ A[2, i]*poly_substitute(B[j], X, S.(P[:, i])) for i = 1:g, j = 1:d ]
     MQ = [ A[1, i]*poly_substitute(B[j], X, S.(Q[:, i])) for i = 1:g, j = 1:d ]
     sy = Singular.syz(Module(MP-MQ))
-    sy = Singular.std(sy)
+    sy = Singular.std(sy; complete_reduction = true)
     l = Singular.ngens(sy)
     gens = [ sum([ B[j] for j = 1:d ] .* Array(sy[i])) for i = 1:l ]
     map = Singular.Ideal(S, gens)
