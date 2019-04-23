@@ -3,8 +3,9 @@ using Random
 using Test
 
 # writes a file 'pcnc_g12_submatrix_399'
-@test test_example(load_example("./data/PCNC@26431g12_2%1.sd", true)...;
-        print_info = true)
+rng = init_rng()
+C = load_example("./data/PCNC@26431g12_2%1.sd", true)
+@test test_example(C..., rng; print_info = true)
 
 filename = "pcnc_g12_submatrix_399"
 checksum = "3b823f6d15e78a31f6e8cc047de45c07645c85edaf50203c4485e0de9d8f8bed  "

@@ -10,7 +10,8 @@ import Nemo
 import Random
 import Singular
 
-export load_example, test_example, run_example, test_modular_arithmetic
+export init_rng, load_example, test_example, run_example,
+        test_modular_arithmetic
 
 const pkgdir = realpath(joinpath(@__DIR__, ".."))
 const libdir = realpath(joinpath(pkgdir, "local", "lib"))
@@ -85,7 +86,7 @@ function load_example(filename::String, print_info::Bool = false)
     I = resort(I)
     g = parse(Int, match(r"(?<=g)(.*)(?=_)", key).match)
     char = parse(PrymGreen.Entry_t, match(r"(?<=@)(.*)(?=g)", key).match)
-    return (R, I, g, char)
+    return (R, I, char, g)
 end
 
 function rev_dp(a::Singular.spoly{T}, b::Singular.spoly{T}) where
