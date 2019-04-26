@@ -153,6 +153,36 @@ msize_t recurrence_sequence(arith_t **seq, arith_t *A, nvals_t n_values,
     return length;
 }
 
+msize_t recurrence_sequence(arith_t **seq, arith_t *A, nvals_t n_values,
+        arith_t *v, msize_t prym_green_size, msize_t index, int g, arith_t c)
+{
+    int **B = init_binomial_coeffs(g);
+    int **hblocks_ptr = (int **)malloc(sizeof(int *));
+    int n_hblocks = init_horizontal_blocks(hblocks_ptr, g);
+    arith_t inv = n_preinvert_limb(c);
+    size_t size_v = prym_green_size*sizeof(arith_t);
+    arith_t *v_a = (arith_t *)malloc(size_v);
+    arith_t *v_b = (arith_t *)malloc(size_v);
+    memcpy(v_b, v, size_v);
+    msize_t length = 2*prym_green_size;
+    // this memory block will be handed over to the calling function:
+    *seq = (arith_t *)malloc(length*sizeof(arith_t));
+    (*seq)[0] = v[index];
+    for (msize_t i = 1; i < length; i++) {
+        memset(v_a, 0, size_v);
+        multiply_matrix_loop(v_a, A, v_b, *hblocks_ptr, n_hblocks, g, c, inv,
+                B);
+        (*seq)[i] = v_a[index];
+        memcpy(v_b, v_a, size_v);
+    }
+    free(v_a);
+    free(v_b);
+    clear_horizontal_blocks(hblocks_ptr);
+    free(hblocks_ptr);
+    clear_binomial_coeffs(B);
+    return length;
+}
+
 ulong mult_preinv_test(ulong a, ulong b, ulong n, long N)
 {
     ulong inv = n_preinvert_limb(n);
