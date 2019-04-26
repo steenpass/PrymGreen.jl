@@ -153,8 +153,21 @@ msize_t recurrence_sequence(arith_t **seq, arith_t *A, nvals_t n_values,
     return length;
 }
 
-msize_t recurrence_sequence(arith_t **seq, arith_t *A, nvals_t n_values,
-        arith_t *v, msize_t prym_green_size, msize_t index, int g, arith_t c)
+/*
+ * compute (*ker) += a*v
+ */
+void vector_addmult(arith_t **ker, arith_t* v, arith_t a, msize_t length,
+        arith_t c, arith_t inv)
+{
+    arith_t p;
+    for (int i = 0; i < length; i++) {
+        p = n_mulmod2_preinv(a, v[i], c, inv);
+        (*ker)[i] = n_addmod((*ker)[i], p, c);
+    }
+}
+
+msize_t kernel(arith_t **ker, arith_t *C, arith_t *A, nvals_t n_values,
+        arith_t* v, msize_t prym_green_size, int g, arith_t c)
 {
     int **B = init_binomial_coeffs(g);
     int **hblocks_ptr = (int **)malloc(sizeof(int *));
@@ -164,15 +177,15 @@ msize_t recurrence_sequence(arith_t **seq, arith_t *A, nvals_t n_values,
     arith_t *v_a = (arith_t *)malloc(size_v);
     arith_t *v_b = (arith_t *)malloc(size_v);
     memcpy(v_b, v, size_v);
-    msize_t length = 2*prym_green_size;
+    msize_t length = prym_green_size;
     // this memory block will be handed over to the calling function:
-    *seq = (arith_t *)malloc(length*sizeof(arith_t));
-    (*seq)[0] = v[index];
+    *ker = (arith_t *)calloc(length, sizeof(arith_t));
+    vector_addmult(ker, v, C[prym_green_size-1], length, c, inv);
     for (msize_t i = 1; i < length; i++) {
         memset(v_a, 0, size_v);
         multiply_matrix_loop(v_a, A, v_b, *hblocks_ptr, n_hblocks, g, c, inv,
                 B);
-        (*seq)[i] = v_a[index];
+        vector_addmult(ker, v_a, C[prym_green_size-i-1], length, c, inv);
         memcpy(v_b, v_a, size_v);
     }
     free(v_a);

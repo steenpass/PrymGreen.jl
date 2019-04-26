@@ -293,6 +293,23 @@ function check_berlekamp_massey(C::Array{Arith_t, 1}, S::Array{Arith_t, 1},
     end
 end
 
+function kernel(C::Array{Arith_t, 1}, A::Array{Entry_t, 1},
+        prym_green_size::Msize_t, g::Int, char::Entry_t,
+        rng::Random.AbstractRNG)
+    A = Array{Arith_t, 1}(A)
+    char = Arith_t(char)
+    v = Array{Arith_t, 1}(rand(rng, 0:(char-1), Int(prym_green_size)))
+    ker_ptr = malloc(Ptr{Arith_t})
+    length_ker = ccall((:kernel, "libprymgreen.so"), Msize_t,
+            (Ptr{Ptr{Arith_t}}, Ptr{Arith_t}, Ptr{Arith_t}, Nvals_t,
+                Ptr{Arith_t}, Msize_t, Int, Arith_t),
+            ker_ptr, C, A, size(A, 1), v, prym_green_size, g, char)
+    ker = unsafe_wrap(Array{Arith_t, 1}, unsafe_load(ker_ptr), (length_ker, );
+            own = true)
+    free(ker_ptr)
+    return ker
+end
+
 function test_example(R::Singular.PolyRing, I::Singular.sideal, char::Entry_t,
         g::Int, rng::Random.AbstractRNG; print_info::Bool = false)
     success = true
