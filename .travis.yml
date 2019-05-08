@@ -13,6 +13,7 @@ script:
     - while sleep 60; do echo "still alive"; done &
     - julia --color=yes -e '
           using Pkg;
+          Pkg.add(PackageSpec(name = "CxxWrap", version = "0.8.1"));
           abstractalgebra_url
                   = "https://github.com/Nemocas/AbstractAlgebra.jl";
           Pkg.add(PackageSpec(url = abstractalgebra_url));
