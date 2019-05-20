@@ -310,6 +310,24 @@ function kernel(C::Array{Arith_t, 1}, A::Array{Entry_t, 1},
     return ker
 end
 
+function check_kernel(C::Array{Arith_t, 1}, A::Array{Entry_t, 1},
+        prym_green_size::Msize_t, g::Int, char::Entry_t,
+        rng::Random.AbstractRNG, print_info::Bool = false)
+    if C[end] != 0   # no kernel
+        return true
+    end
+    ker = kernel(C, A, prym_green_size, g, char, rng)
+    print_info && print("ker. test: ")
+    if all(multiply_matrix(Array{Arith_t, 1}(A), ker, g, char) .== 0)
+        print_info && printstyled("passed\n"; color = :green)
+        return true
+    else
+        print_info && printstyled("failed\n"; bold = true, color = :red)
+        return false
+    end
+
+end
+
 function test_example(R::Singular.PolyRing, I::Singular.sideal, char::Entry_t,
         g::Int, rng::Random.AbstractRNG; print_info::Bool = false)
     success = true
@@ -328,6 +346,7 @@ function test_example(R::Singular.PolyRing, I::Singular.sideal, char::Entry_t,
     @time_info C = PrymGreen.berlekamp_massey(S, char)
     print_info && println("C[1:4]   = ", map(x -> Int(x), C[1:4]))
     success &= check_berlekamp_massey(C, S, char, print_info)
+    success &= check_kernel(C, A, prym_green_size, g, char, rng, print_info)
     return success
 end
 
