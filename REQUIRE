@@ -1,6 +1,9 @@
 julia 1.0
 AbstractAlgebra
-CxxWrap
+# temporary workaround for
+# https://github.com/oscar-system/Singular.jl/issues/102
+# see also .travis.yml
+CxxWrap 0.8.1 0.8.2
 Hecke
 LightXML
 Nemo

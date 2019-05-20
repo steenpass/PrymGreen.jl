@@ -15,6 +15,7 @@ script:
           using Pkg;
           @info "temporary workaround for\n"
           * "https://github.com/oscar-system/Singular.jl/issues/102";
+          # see also REQUIRE file
           Pkg.add(PackageSpec(name = "CxxWrap", version = "0.8.1"));
           abstractalgebra_url
                   = "https://github.com/Nemocas/AbstractAlgebra.jl";
