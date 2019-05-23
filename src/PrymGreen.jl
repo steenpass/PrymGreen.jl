@@ -30,8 +30,9 @@ global const Nvals_t = typeof(return_nvals_t())
 global const Entry_t = typeof(return_entry_t())
 global const Arith_t = typeof(return_arith_t())
 
-include("singular_tools.jl")
 include("generate_random_pcnc.jl")
+include("multiplication.jl")
+include("singular_tools.jl")
 
 macro time_info(ex)
     return :($(esc(:(print_info))) ? $(esc(:(@time $ex))) : $(esc(ex)))
