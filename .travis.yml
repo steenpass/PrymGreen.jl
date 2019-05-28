@@ -13,9 +13,9 @@ script:
     - while sleep 60; do echo "still alive"; done &
     - julia --color=yes -e '
           using Pkg;
-          @info "temporary workaround for\n"
-          * "https://github.com/oscar-system/Singular.jl/issues/102";
-          # see also REQUIRE file
+          @info "This is a temporary workaround for:\n"
+          * "https://github.com/oscar-system/Singular.jl/issues/102" * "\n"
+          * "See also REQUIRE file.";
           Pkg.add(PackageSpec(name = "CxxWrap", version = "0.8.1"));
           abstractalgebra_url
                   = "https://github.com/Nemocas/AbstractAlgebra.jl";
