@@ -1,3 +1,5 @@
+import OffsetArrays
+
 function max_values_per_row(g::Int)
     g == 8 && return 11
     g == 10 && return 75
@@ -22,36 +24,38 @@ function needed_blocks(g::Int)
     return vcat(B1, B2, B3)
 end
 
+MultData = OffsetArrays.OffsetArray{Array{Tuple{Msize_t, Msize_t, Int8}, 1}, 1}
+
 h_shift(h, v, f) = binomial(h+v+f-3, h-1)
 v_shift(h, v, f) = binomial(h+v+f-3, v-1)
 
-function f_multiply(D::Array{Tuple{Int, Int, Int, Int}, 1}, h::Int, v::Int,
-        s::Int, i::Msize_t, j::Msize_t, p::Msize_t)
+function f_multiply(D::MultData, h::Int, v::Int, s::Int,
+        i::Msize_t, j::Msize_t, p::Msize_t)
     size = h_shift(h, v, 1)   # == v_shift(h, v, 1)
     for k in 0:(size-1)
-        push!(D, (i+k, j+k, p, s))
+        push!(D[i+k], (j+k, p, s))
     end
 end
 
-function h_multiply(D::Array{Tuple{Int, Int, Int, Int}, 1}, v::Int, f::Int,
-        s::Int, i::Msize_t, j::Msize_t, p::Msize_t)
+function h_multiply(D::MultData, v::Int, f::Int, s::Int,
+        i::Msize_t, j::Msize_t, p::Msize_t)
     size = v_shift(1, v, f)
     for k in 0:(size-1)
-        push!(D, (i+k, j, p+size-k-1, s))
+        push!(D[i+k], (j, p+size-k-1, s))
         s *= -1
     end
 end
 
-function v_multiply(D::Array{Tuple{Int, Int, Int, Int}, 1}, h::Int, f::Int,
-        s::Int, i::Msize_t, j::Msize_t, p::Msize_t)
+function v_multiply(D::MultData, h::Int, f::Int, s::Int,
+        i::Msize_t, j::Msize_t, p::Msize_t)
     size = h_shift(h, 1, f)
     for k in 0:(size-1)
-        push!(D, (i, j+k, p+k, s))
+        push!(D[i], (j+k, p+k, s))
     end
 end
 
-function multiplication_data_recursion(D::Array{Tuple{Int, Int, Int, Int}, 1},
-        h::Int, v::Int, f::Int, s::Int, i::Msize_t, j::Msize_t, p::Msize_t)
+function multiplication_data_recursion(D::MultData, h::Int, v::Int, f::Int,
+        s::Int, i::Msize_t, j::Msize_t, p::Msize_t)
     (h < 1 || v < 1 || f < 1) && return
     (f == 1)           && return f_multiply(D, h, v, s, i, j, p)
     (h == 1 && f == 2) && return h_multiply(D, v, f, s, i, j, p)
@@ -66,10 +70,17 @@ function multiplication_data_recursion(D::Array{Tuple{Int, Int, Int, Int}, 1},
 end
 
 function multiplication_data(h::Int, v::Int, f::Int)
-    D = Array{Tuple{Int, Int, Int, Int}, 1}(undef, 0)
+    A = [ eltype(MultData)(undef, 0) for i in 1:v_shift(h, v, f) ]
+    D = OffsetArrays.OffsetArray(A, -1)
+    n = binomial(h+f-2, f-1)
+    for x in D
+        sizehint!(x, n)
+    end
     (i, j, p) = (Msize_t(0), Msize_t(0), Msize_t(0))
     multiplication_data_recursion(D, h, v, f, 1, i, j, p)
-    sort!(D)
+    for x in D
+        sort!(x)
+    end
     return D
 end
 
