@@ -17,13 +17,6 @@ script:
           * "https://github.com/oscar-system/Singular.jl/issues/102" * "\n"
           * "See also REQUIRE file.";
           Pkg.add(PackageSpec(name = "CxxWrap", version = "0.8.1"));
-          abstractalgebra_url
-                  = "https://github.com/Nemocas/AbstractAlgebra.jl";
-          Pkg.add(PackageSpec(url = abstractalgebra_url));
-          nemo_url = "https://github.com/Nemocas/Nemo.jl";
-          Pkg.add(PackageSpec(url = nemo_url));
-          hecke_url = "https://github.com/thofma/Hecke.jl";
-          Pkg.add(PackageSpec(url = hecke_url));
           singular_url = "https://github.com/oscar-system/Singular.jl";
           Pkg.add(PackageSpec(url = singular_url));
       '
