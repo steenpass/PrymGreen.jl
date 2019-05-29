@@ -28,10 +28,21 @@ function needed_blocks(g::Int)
     return vcat(B1, B2, B3)
 end
 
-MultData = OffsetArrays.OffsetArray{Array{Tuple{Msize_t, Msize_t, Int8}, 1}, 1}
-
 h_shift(h, v, f) = binomial(h+v+f-3, h-1)
 v_shift(h, v, f) = binomial(h+v+f-3, v-1)
+
+function count_values_block(h::Int, v::Int, f::Int)
+    (h < 1 || v < 1 || f < 1) && return 0
+    return binomial(h+v+f-3, f-1)
+end
+
+function horizontal_blocks(g::Int)
+    hblocks = [ n for n in (div(g, 2)-2):(g-5) ]
+    push!(hblocks, g-7)
+    return hblocks
+end
+
+MultData = OffsetArrays.OffsetArray{Array{Tuple{Msize_t, Msize_t, Int8}, 1}, 1}
 
 function f_multiply(D::MultData, h::Int, v::Int, s::Int,
         i::Msize_t, j::Msize_t, p::Msize_t)
@@ -89,9 +100,9 @@ function multiplication_data(h::Int, v::Int, f::Int)
 end
 
 # y = A*x
-function write_multiplication_function(D::MultData, h::Int, v::Int, f::Int,
-        p::Entry_t)
-    out = "static void multiply_block_"
+function write_multiply_koszul_block(h::Int, v::Int, f::Int, p::Entry_t)
+    D = multiplication_data(h, v, f)
+    out = "static void multiply_koszul_block_"
     out *= string(h) * "_" * string(v) * "_" * string(f)
     out *= "(arith_t *y, arith_t *A, arith_t *x)\n{\n"
     for i in axes(D, 1)
@@ -103,6 +114,40 @@ function write_multiplication_function(D::MultData, h::Int, v::Int, f::Int,
         end
         out *= ";\n"
     end
-    out *= "}"
+    out *= "}\n"
     return out
 end
+
+function call_multiply_koszul_block(h::Int, v::Int, f::Int,
+        offset_y::Int, offset_A::Int, offset_x::Int)
+    out = "    multiply_koszul_block_"
+    out *= string(h) * "_" * string(v) * "_" * string(f)
+    out *= "(y+" * string(offset_y)
+    out *= ", A+" * string(offset_A)
+    out *= ", x+" * string(offset_x) * ");\n"
+    return out
+end
+
+function write_multiply_koszul_row(g::Int, f::Int)
+    out = "static void multiply_koszul_row_" * string(f)
+    out *= "(arith_t *y, arith_t *A, arith_t *x)\n{\n"
+    v = div(g, 2)-f-1
+    offsets = [ 0, 0, 0 ]   # offsets for y, A, x
+    hblocks = horizontal_blocks(g)
+    for h in 1:size(hblocks, 1)
+        for j in 1:hblocks[h]
+            out *= call_multiply_koszul_block(h, v, f, offsets...)
+            offsets[2] += count_values_block(h, v, f)
+            if h != size(hblocks, 1)
+                offsets[1] += v_shift(h, v, f)
+                out *= call_multiply_koszul_block(h, v-1, f+1, offsets...)
+                offsets[2] += count_values_block(h, v-1, f+1)
+                offsets[1] = 0
+            end
+            offsets[3] += h_shift(h, v, f)
+        end
+    end
+    out *= "}\n"
+    return out
+end
+
