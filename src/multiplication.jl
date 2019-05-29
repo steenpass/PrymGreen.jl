@@ -7,10 +7,14 @@ function max_values_per_row(g::Int)
     return (g-5)*binomial(div(g, 2), 3) + (g-7)*binomial(div(g, 2), 2)
 end
 
+#=
+Return the maximal p::Entry_t such that (p-1)+N*(p^2-p) <= 2^E-1.
+Works for g in 8:2:50.
+=#
 function max_modulus(g::Int)
     E = sizeof(PrymGreen.Arith_t)*8
     N = max_values_per_row(g)
-    return ceil(Entry_t, sqrt(2.0^E/N))
+    return floor(Entry_t, 0.5+sqrt(2.0^E/N))
 end
 
 function needed_blocks(g::Int)
@@ -84,3 +88,21 @@ function multiplication_data(h::Int, v::Int, f::Int)
     return D
 end
 
+# y = A*x
+function write_multiplication_function(D::MultData, h::Int, v::Int, f::Int,
+        p::Entry_t)
+    out = "static void multiply_block_"
+    out *= string(h) * "_" * string(v) * "_" * string(f)
+    out *= "(arith_t *y, arith_t *A, arith_t *x)\n{\n"
+    for i in axes(D, 1)
+        offset = Int128(count(x -> (x[3] < 0), D[i]) * (p^2-p))
+        out *= "    y[" * string(i) * "] += " * string(offset) * Arith_t_suffix
+        for (j, p, s) in D[i]
+            out *= (s > 0 ? "+" : "-")
+            out *= "A[" * string(p) * "]*x[" * string(j) * "]"
+        end
+        out *= ";\n"
+    end
+    out *= "}"
+    return out
+end

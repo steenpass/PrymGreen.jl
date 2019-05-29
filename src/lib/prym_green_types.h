@@ -14,5 +14,6 @@
 #define null_entry ((entry_t)4294967295)   // represents not yet assigned entry
 // uint64_t is ulong
 #define arith_t uint64_t   // for modular arithmetic
+#define ARITH_T_SUFFIX "ULL"   // suffix for literals of type arith_t
 
 #endif   // PRYM_GREEN_TYPES_H

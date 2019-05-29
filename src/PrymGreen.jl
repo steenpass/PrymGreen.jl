@@ -29,6 +29,7 @@ global const Msize_t = typeof(return_msize_t())
 global const Nvals_t = typeof(return_nvals_t())
 global const Entry_t = typeof(return_entry_t())
 global const Arith_t = typeof(return_arith_t())
+global const Arith_t_suffix = return_arith_t_suffix()
 
 include("generate_random_pcnc.jl")
 include("multiplication.jl")
