@@ -31,15 +31,30 @@ end
 h_shift(h, v, f) = binomial(h+v+f-3, h-1)
 v_shift(h, v, f) = binomial(h+v+f-3, v-1)
 
+function horizontal_blocks(g::Int)
+    hblocks = [ n for n in (div(g, 2)-2):(g-5) ]
+    push!(hblocks, g-7)
+    return hblocks
+end
+
 function count_values_block(h::Int, v::Int, f::Int)
     (h < 1 || v < 1 || f < 1) && return 0
     return binomial(h+v+f-3, f-1)
 end
 
-function horizontal_blocks(g::Int)
-    hblocks = [ n for n in (div(g, 2)-2):(g-5) ]
-    push!(hblocks, g-7)
-    return hblocks
+function count_values_row(g::Int, f::Int)
+    n_values = 0
+    v = div(g, 2)-f-1
+    hblocks = horizontal_blocks(g)
+    h = 1
+    while h < size(hblocks, 1)
+        n_values += hblocks[h]*count_values_block(h, v, f)
+        n_values += hblocks[h]*count_values_block(h, v-1, f+1)
+        h += 1
+    end
+    # h == size(hblocks, 1)
+    n_values += hblocks[h]*count_values_block(h, v, f)
+    return n_values
 end
 
 MultData = OffsetArrays.OffsetArray{Array{Tuple{Msize_t, Msize_t, Int8}, 1}, 1}
@@ -100,11 +115,12 @@ function multiplication_data(h::Int, v::Int, f::Int)
 end
 
 # y = A*x
-function write_multiply_koszul_block(h::Int, v::Int, f::Int, p::Entry_t)
-    D = multiplication_data(h, v, f)
-    out = "static void multiply_koszul_block_"
+function write_multiply_koszul_block(g::Int, h::Int, v::Int, f::Int,
+        p::Entry_t)
+    out = "static void multiply_koszul_block_g" * string(g) * "_"
     out *= string(h) * "_" * string(v) * "_" * string(f)
     out *= "(arith_t *y, arith_t *A, arith_t *x)\n{\n"
+    D = multiplication_data(h, v, f)
     for i in axes(D, 1)
         offset = Int128(count(x -> (x[3] < 0), D[i]) * (p^2-p))
         out *= "    y[" * string(i) * "] += " * string(offset) * Arith_t_suffix
@@ -118,9 +134,9 @@ function write_multiply_koszul_block(h::Int, v::Int, f::Int, p::Entry_t)
     return out
 end
 
-function call_multiply_koszul_block(h::Int, v::Int, f::Int,
+function call_multiply_koszul_block(g::Int, h::Int, v::Int, f::Int,
         offset_y::Int, offset_A::Int, offset_x::Int)
-    out = "    multiply_koszul_block_"
+    out = "    multiply_koszul_block_g" * string(g) * "_"
     out *= string(h) * "_" * string(v) * "_" * string(f)
     out *= "(y+" * string(offset_y)
     out *= ", A+" * string(offset_A)
@@ -129,23 +145,51 @@ function call_multiply_koszul_block(h::Int, v::Int, f::Int,
 end
 
 function write_multiply_koszul_row(g::Int, f::Int)
-    out = "static void multiply_koszul_row_" * string(f)
+    out = "static void multiply_koszul_row_g" * string(g) * "_f" * string(f)
     out *= "(arith_t *y, arith_t *A, arith_t *x)\n{\n"
     v = div(g, 2)-f-1
     offsets = [ 0, 0, 0 ]   # offsets for y, A, x
     hblocks = horizontal_blocks(g)
     for h in 1:size(hblocks, 1)
         for j in 1:hblocks[h]
-            out *= call_multiply_koszul_block(h, v, f, offsets...)
+            out *= call_multiply_koszul_block(g, h, v, f, offsets...)
             offsets[2] += count_values_block(h, v, f)
             if h != size(hblocks, 1)
                 offsets[1] += v_shift(h, v, f)
-                out *= call_multiply_koszul_block(h, v-1, f+1, offsets...)
+                out *= call_multiply_koszul_block(g, h, v-1, f+1, offsets...)
                 offsets[2] += count_values_block(h, v-1, f+1)
                 offsets[1] = 0
             end
             offsets[3] += h_shift(h, v, f)
         end
+    end
+    out *= "}\n"
+    return out
+end
+
+function call_multiply_koszul_row(g::Int, f::Int, offset_y::Int, offset_A::Int)
+    out = "    multiply_koszul_row_g" * string(g) * "_f" * string(f)
+    out *= "(y+" * string(offset_y)
+    out *= ", A+" * string(offset_A)
+    out *= ", x);\n"
+    return out
+end
+
+function write_multiply_matrix_loop(g::Int)
+    out = "static void multiply_matrix_loop_g" * string(g)
+    out *= "(arith_t *y, arith_t *A, arith_t *x)\n{\n"
+    offsets = [ 0, 0 ]   # offsets for y, A
+    shift_f2 = [ v_shift(div(g, 2)-1, div(g, 2)-3, 2), count_values_row(g, 2) ]
+    shift_f3 = [ v_shift(div(g, 2)-1, div(g, 2)-4, 3), count_values_row(g, 3) ]
+    for k in 1:3
+        out *= call_multiply_koszul_row(g, 2, offsets...)
+        offsets += shift_f2
+    end
+    for k in 1:g
+        out *= call_multiply_koszul_row(g, 2, offsets...)
+        offsets += shift_f2
+        out *= call_multiply_koszul_row(g, 3, offsets...)
+        offsets += shift_f3
     end
     out *= "}\n"
     return out
