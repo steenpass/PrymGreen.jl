@@ -37,6 +37,13 @@ function horizontal_blocks(g::Int)
     return hblocks
 end
 
+function prym_green_size(g::Int)
+    # sum up v_shift's of all blocks in the last column
+    res = 3*binomial(g-5, div(g, 2)-4)
+    res += g*binomial(g-4, div(g, 2)-4)
+    return res
+end
+
 function count_values_block(h::Int, v::Int, f::Int)
     (h < 1 || v < 1 || f < 1) && return 0
     return binomial(h+v+f-3, f-1)
@@ -193,5 +200,31 @@ function write_multiply_matrix_loop(g::Int)
     end
     out *= "}\n"
     return out
+end
+
+function write_recurrence_sequence(g::Int)
+    out = "msize_t recurrence_sequence_g" * string(g)
+    out *= "(arith_t **seq, arith_t *A, arith_t *v, msize_t index)\n{\n"
+    pg_size = prym_green_size(g)
+    size_v = pg_size*sizeof(Arith_t)
+    out *= "    arith_t *v_a = (arith_t *)malloc(" * string(size_v) * ");\n"
+    out *= "    arith_t *v_b = (arith_t *)malloc(" * string(size_v) * ");\n"
+    out *= "    memcpy(v_b, v, " * string(size_v) * ");\n"
+    length = 2*pg_size
+    out *= "    // this memory block will be handed over to the calling "
+    out *= "function:\n"
+    out *= "    *seq = (arith_t *)malloc(" * string(length*sizeof(Arith_t))
+    out *= ");\n"
+    out *= "    (*seq)[0] = v[index];\n"
+    out *= "    for (msize_t i = 1; i < " * string(length) * "; i++) {\n"
+    out *= "        memset(v_a, 0, " * string(size_v) * ");\n"
+    out *= "        multiply_matrix_loop_g" * string(g) * "(v_a, A, v_b);\n"
+    out *= "        (*seq)[i] = v_a[index];\n"
+    out *= "        memcpy(v_b, v_a, " * string(size_v) * ");\n"
+    out *= "    }\n"
+    out *= "    free(v_a);\n"
+    out *= "    free(v_b);\n"
+    out *= "    return " * string(length) * ";\n"
+    out *= "}\n"
 end
 
