@@ -130,12 +130,12 @@ function write_multiply_koszul_block(g::Int, h::Int, v::Int, f::Int,
     D = multiplication_data(h, v, f)
     for i in axes(D, 1)
         offset = Int128(count(x -> (x[3] < 0), D[i]) * (p^2-p))
-        out *= "    y[" * string(i) * "] += " * string(offset) * Arith_t_suffix
+        out2 = "    y[" * string(i) * "] += " * string(offset) * Arith_t_suffix
         for (j, p, s) in D[i]
-            out *= (s > 0 ? "+" : "-")
-            out *= "A[" * string(p) * "]*x[" * string(j) * "]"
+            out2 *= (s > 0 ? "+" : "-") *
+                    "A[" * string(p) * "]*x[" * string(j) * "]"
         end
-        out *= ";\n"
+        out *= out2 * ";\n"
     end
     out *= "}\n\n"
     return out
