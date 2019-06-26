@@ -137,7 +137,7 @@ function write_multiply_koszul_block(g::Int, h::Int, v::Int, f::Int,
         end
         out *= ";\n"
     end
-    out *= "}\n"
+    out *= "}\n\n"
     return out
 end
 
@@ -170,7 +170,7 @@ function write_multiply_koszul_row(g::Int, f::Int)
             offsets[3] += h_shift(h, v, f)
         end
     end
-    out *= "}\n"
+    out *= "}\n\n"
     return out
 end
 
@@ -198,7 +198,7 @@ function write_multiply_matrix_loop(g::Int)
         out *= call_multiply_koszul_row(g, 3, offsets...)
         offsets += shift_f3
     end
-    out *= "}\n"
+    out *= "}\n\n"
     return out
 end
 
@@ -225,6 +225,24 @@ function write_recurrence_sequence(g::Int)
     out *= "    free(v_a);\n"
     out *= "    free(v_b);\n"
     out *= "    return " * string(length) * ";\n"
-    out *= "}\n"
+    out *= "}\n\n"
+end
+
+function write_multiplication_code(g::Int, p::Entry_t)
+    dir = joinpath(realpath(joinpath(@__DIR__, "..", "src", "lib")), "tmp")
+    mkpath(dir)
+    file = joinpath(dir, "prym_green_g" * string(g) * ".c")
+    io = open(file, "w")
+    write(io, "#include <string.h>\n")
+    write(io, "#include \"../prym_green_types.h\"\n\n")
+    B = needed_blocks(g)
+    for (h, v, f) in B
+        write(io, write_multiply_koszul_block(g, h, v, f, p))
+    end
+    write(io, write_multiply_koszul_row(g, 2))
+    write(io, write_multiply_koszul_row(g, 3))
+    write(io, write_multiply_matrix_loop(g))
+    write(io, write_recurrence_sequence(g))
+    close(io)
 end
 
