@@ -228,10 +228,15 @@ function write_recurrence_sequence(g::Int)
     out *= "}\n\n"
 end
 
-function write_multiplication_code(g::Int, p::Entry_t)
+function file_for_multiplication_code(g::Int)
     dir = joinpath(realpath(joinpath(@__DIR__, "..", "src", "lib")), "tmp")
     mkpath(dir)
     file = joinpath(dir, "prym_green_g" * string(g) * ".c")
+    return file
+end
+
+function write_multiplication_code(g::Int, p::Entry_t)
+    file = file_for_multiplication_code(g)
     io = open(file, "w")
     write(io, "#include <string.h>\n")
     write(io, "#include \"../prym_green_types.h\"\n\n")
@@ -246,3 +251,10 @@ function write_multiplication_code(g::Int, p::Entry_t)
     close(io)
 end
 
+function compile_multiplication_code(g::Int)
+    file = file_for_multiplication_code(g)
+    o_file = file[1:(end-1)] * "o"
+    so_file = file[1:(end-1)] * "so"
+    run(`gcc -c -fPIC -Wall -o $o_file $file`)
+    run(`gcc -shared -fPIC $o_file -o $so_file`)
+end
